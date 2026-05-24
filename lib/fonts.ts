@@ -1,9 +1,10 @@
-import { cn } from "./utils";
 import {
   Geist as createSans,
   Instrument_Serif as createSerif,
   Geist_Mono as createMono,
 } from "next/font/google";
+
+import { cn } from "./utils";
 
 const sans = createSans({
   subsets: ["latin"],
@@ -26,5 +27,5 @@ export const fonts = cn(
   sans.variable,
   mono.variable,
   serif.variable,
-  "touch-manipulation font-sans antialiased",
+  "touch-manipulation font-sans antialiased"
 );

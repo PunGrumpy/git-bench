@@ -9,8 +9,8 @@ const Home = () => (
       </header>
       <div className="grid gap-5 text-pretty text-sm leading-7 text-muted-foreground sm:text-base">
         <p>
-          A Verno Studio starter, shaped for taste, systems, and the first commit—so the surface is
-          considered before the feature list runs long.
+          A Verno Studio starter, shaped for taste, systems, and the first
+          commit—so the surface is considered before the feature list runs long.
         </p>
         <p>
           Edit{" "}

@@ -1,7 +1,5 @@
 {
-  "addons": [
-    "ultracite"
-  ],
+  "addons": ["ultracite"],
   "createdAt": "2026-05-24T14:16:11.701Z",
   "frontend": "next",
   "generator": "verno",
