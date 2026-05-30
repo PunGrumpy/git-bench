@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Bar,
   BarChart,
@@ -16,6 +17,7 @@ import type {
   XAxisTickContentProps,
 } from "recharts";
 
+import { BenchResultsTable } from "@/components/bench-results-table";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { benchData, findResult, chartConfig } from "@/lib/bench";
@@ -223,36 +225,53 @@ const OperationChart = ({ operationId }: { operationId: OperationId }) => {
   );
 };
 
-export const BenchChart = () => (
-  <Tabs
-    className="w-full gap-3"
-    defaultValue={benchData.operations[0]?.id ?? "status"}
-  >
-    <TabsList
-      className="gap-x-5 gap-y-0.5 border-b border-dotted bg-transparent p-0"
-      variant="line"
-    >
-      {benchData.operations.map((op) => (
-        <TabsTrigger
-          className={cn(
-            "px-0 text-sm text-muted-foreground transition-colors duration-150 ease-out",
-            "data-active:font-medium data-active:text-foreground",
-            "group-data-horizontal/tabs:after:bottom-[-2.5px] group-data-horizontal/tabs:after:h-0.25",
-            "focus-visible:outline-none focus-visible:ring-0"
-          )}
-          key={op.id}
-          value={op.id}
-        >
-          {op.label}
-        </TabsTrigger>
-      ))}
-    </TabsList>
+export const BenchChart = () => {
+  const [operation, setOperation] = useState<OperationId>(
+    benchData.operations[0]?.id ?? "status"
+  );
 
-    {benchData.operations.map((op) => (
-      <TabsContent className="space-y-2" key={op.id} value={op.id}>
-        <p className="text-muted-foreground text-xs italic">{op.description}</p>
-        <OperationChart operationId={op.id} />
-      </TabsContent>
-    ))}
-  </Tabs>
-);
+  return (
+    <Tabs
+      className="w-full gap-3"
+      onValueChange={(value) => setOperation(value as OperationId)}
+      value={operation}
+    >
+      <TabsList
+        className="gap-x-5 gap-y-0.5 border-b border-dotted bg-transparent p-0"
+        variant="line"
+      >
+        {benchData.operations.map((op) => (
+          <TabsTrigger
+            className={cn(
+              "px-0 text-sm text-muted-foreground",
+              "transition-[color,opacity] duration-150 ease-(--ease-out-strong)",
+              "active:scale-[0.98] active:opacity-80",
+              "data-active:font-medium data-active:text-foreground",
+              "group-data-horizontal/tabs:after:bottom-[-2.5px] group-data-horizontal/tabs:after:h-0.25",
+              "group-data-horizontal/tabs:after:ease-(--ease-out-strong)",
+              "focus-visible:outline-none focus-visible:ring-0"
+            )}
+            key={op.id}
+            value={op.id}
+          >
+            {op.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+
+      {benchData.operations.map((op) => (
+        <TabsContent className="space-y-2" key={op.id} value={op.id}>
+          <p className="text-muted-foreground text-xs italic">
+            {op.description}
+          </p>
+          <OperationChart operationId={op.id} />
+        </TabsContent>
+      ))}
+
+      <BenchResultsTable
+        activeOperation={operation}
+        onOperationChange={setOperation}
+      />
+    </Tabs>
+  );
+};
