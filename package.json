@@ -9,7 +9,9 @@
     "start": "next start",
     "typecheck": "next typegen && tsgo --noEmit",
     "check": "ultracite check",
-    "fix": "ultracite fix"
+    "fix": "ultracite fix",
+    "bench:clone": "bash scripts/clone-linux.sh",
+    "bench": "bun run scripts/bench.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -19,6 +21,7 @@
     "date-fns": "^4.3.0",
     "embla-carousel-react": "^8.6.0",
     "input-otp": "^1.4.2",
+    "isomorphic-git": "^1.27.1",
     "lucide-react": "^1.16.0",
     "next": "^16.2.0",
     "next-themes": "^0.4.6",

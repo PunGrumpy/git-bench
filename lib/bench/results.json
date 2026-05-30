@@ -1,0 +1,284 @@
+{
+  "lastBenchmarked": "2026-05-26",
+  "repo": {
+    "url": "https://github.com/torvalds/linux",
+    "path": ".git-bench-repos/linux"
+  },
+  "operations": [
+    {
+      "id": "current-branch",
+      "label": "Current branch",
+      "description": "Resolve HEAD to a branch name."
+    },
+    {
+      "id": "status",
+      "label": "Status",
+      "description": "Worktree + index status (porcelain)."
+    },
+    {
+      "id": "log-100",
+      "label": "Log (100)",
+      "description": "Walk the 100 most recent commits from HEAD."
+    },
+    {
+      "id": "tracked-files",
+      "label": "Tracked files",
+      "description": "Enumerate every path tracked in the index."
+    },
+    {
+      "id": "changed-files",
+      "label": "Changed files",
+      "description": "Name-only diff between HEAD~1 and HEAD."
+    },
+    {
+      "id": "read-25-blobs",
+      "label": "Read 25 blobs",
+      "description": "Read 25 file blobs at HEAD by path."
+    }
+  ],
+  "runners": [
+    {
+      "id": "git-cli",
+      "label": "git CLI",
+      "description": "Subprocess to system git."
+    },
+    {
+      "id": "libgit2-ffi",
+      "label": "node:ffi + libgit2",
+      "description": "bun:ffi bindings to system libgit2."
+    },
+    {
+      "id": "gitoxide",
+      "label": "gitoxide",
+      "description": "gix CLI (Rust)."
+    },
+    {
+      "id": "isomorphic-git",
+      "label": "isomorphic-git",
+      "description": "Pure JS over node:fs."
+    }
+  ],
+  "results": [
+    {
+      "operation": "current-branch",
+      "runner": "git-cli",
+      "maxMs": 6.572052999999997,
+      "meanMs": 5.966744,
+      "medianMs": 5.881063000000005,
+      "minMs": 5.464775999999993,
+      "samples": 5
+    },
+    {
+      "operation": "status",
+      "runner": "git-cli",
+      "maxMs": 98.54965000000004,
+      "meanMs": 94.59035320000002,
+      "medianMs": 96.251214,
+      "minMs": 88.466456,
+      "samples": 5
+    },
+    {
+      "operation": "log-100",
+      "runner": "git-cli",
+      "maxMs": 10.805810000000065,
+      "meanMs": 10.434033599999974,
+      "medianMs": 10.426463999999896,
+      "minMs": 10.108345999999983,
+      "samples": 5
+    },
+    {
+      "operation": "tracked-files",
+      "runner": "git-cli",
+      "maxMs": 28.996784999999818,
+      "meanMs": 26.751034199999957,
+      "medianMs": 26.870245999999952,
+      "minMs": 24.37452200000007,
+      "samples": 5
+    },
+    {
+      "operation": "changed-files",
+      "runner": "git-cli",
+      "maxMs": 8.26503600000001,
+      "meanMs": 7.087814800000023,
+      "medianMs": 6.512410000000045,
+      "minMs": 6.372323000000051,
+      "samples": 5
+    },
+    {
+      "operation": "read-25-blobs",
+      "runner": "git-cli",
+      "maxMs": 251.542553,
+      "meanMs": 172.72538400000002,
+      "medianMs": 152.60824000000002,
+      "minMs": 147.25106400000004,
+      "samples": 5
+    },
+    {
+      "operation": "current-branch",
+      "runner": "libgit2-ffi",
+      "maxMs": 0.022956000000249333,
+      "meanMs": 0.013104199999997946,
+      "medianMs": 0.00934000000006563,
+      "minMs": 0.006030999999893538,
+      "samples": 5
+    },
+    {
+      "operation": "status",
+      "runner": "libgit2-ffi",
+      "maxMs": 177.37969299999986,
+      "meanMs": 173.8202636,
+      "medianMs": 174.64524200000005,
+      "minMs": 170.2487839999999,
+      "samples": 5
+    },
+    {
+      "operation": "log-100",
+      "runner": "libgit2-ffi",
+      "maxMs": 0.3696930000000975,
+      "meanMs": 0.290708000000086,
+      "medianMs": 0.28357099999993807,
+      "minMs": 0.2533020000000761,
+      "samples": 5
+    },
+    {
+      "operation": "tracked-files",
+      "runner": "libgit2-ffi",
+      "maxMs": 7.8167349999998805,
+      "meanMs": 5.392953599999873,
+      "medianMs": 5.012069999999767,
+      "minMs": 3.134642999999869,
+      "samples": 5
+    },
+    {
+      "operation": "changed-files",
+      "runner": "libgit2-ffi",
+      "maxMs": 17.018250999999964,
+      "meanMs": 16.40429179999983,
+      "medianMs": 16.41180600000007,
+      "minMs": 15.705309999999372,
+      "samples": 5
+    },
+    {
+      "operation": "read-25-blobs",
+      "runner": "libgit2-ffi",
+      "maxMs": 6.681695999999647,
+      "meanMs": 6.538685199999963,
+      "medianMs": 6.499421999999868,
+      "minMs": 6.429866000000402,
+      "samples": 5
+    },
+    {
+      "operation": "current-branch",
+      "runner": "gitoxide",
+      "maxMs": 27.106959000000643,
+      "meanMs": 21.339416800000254,
+      "medianMs": 20.33708200000001,
+      "minMs": 17.577393999999913,
+      "samples": 5
+    },
+    {
+      "operation": "status",
+      "runner": "gitoxide",
+      "maxMs": 151.3856679999999,
+      "meanMs": 147.65958379999975,
+      "medianMs": 149.94502899999952,
+      "minMs": 142.03595899999982,
+      "samples": 5
+    },
+    {
+      "operation": "log-100",
+      "runner": "gitoxide",
+      "maxMs": 48.47254200000043,
+      "meanMs": 45.53812280000002,
+      "medianMs": 44.93928099999994,
+      "minMs": 42.989926999999625,
+      "samples": 5
+    },
+    {
+      "operation": "tracked-files",
+      "runner": "gitoxide",
+      "maxMs": 252.92212800000016,
+      "meanMs": 230.3422395999998,
+      "medianMs": 224.82931499999995,
+      "minMs": 222.57288199999948,
+      "samples": 5
+    },
+    {
+      "operation": "changed-files",
+      "runner": "gitoxide",
+      "maxMs": 61.813278999999966,
+      "meanMs": 55.25482159999992,
+      "medianMs": 54.02751999999964,
+      "minMs": 51.44893400000001,
+      "samples": 5
+    },
+    {
+      "operation": "read-25-blobs",
+      "runner": "gitoxide",
+      "maxMs": 920.9255110000013,
+      "meanMs": 865.8923611999999,
+      "medianMs": 872.3109700000005,
+      "minMs": 813.7574669999995,
+      "samples": 5
+    },
+    {
+      "operation": "current-branch",
+      "runner": "isomorphic-git",
+      "maxMs": 1.0916619999989052,
+      "meanMs": 0.7280561999999918,
+      "medianMs": 0.6068680000007589,
+      "minMs": 0.5738529999998718,
+      "samples": 5
+    },
+    {
+      "error": "An internal error caused this command to fail.\n\nIf you're not a developer, report the bug to the developers of the application you're using. If this is a bug in isomorphic-git then you should create a proper bug yourselves. The bug should include a minimal reproduction and details about the version and environment.\n\nPlease file a bug report at https://github.com/isomorphic-git/isomorphic-git/issues with this error message: Could not read packfile at /home/grumpy/Developments/git-bench/.git-bench-repos/linux/.git/objects/pack/pack-b29e18a78d742c6965eff4e81123f8e2aeafab35.pack. The file may be missing, corrupted, or too large to read into memory.",
+      "maxMs": 0,
+      "meanMs": 0,
+      "medianMs": 0,
+      "minMs": 0,
+      "operation": "status",
+      "runner": "isomorphic-git",
+      "samples": 0
+    },
+    {
+      "error": "An internal error caused this command to fail.\n\nIf you're not a developer, report the bug to the developers of the application you're using. If this is a bug in isomorphic-git then you should create a proper bug yourselves. The bug should include a minimal reproduction and details about the version and environment.\n\nPlease file a bug report at https://github.com/isomorphic-git/isomorphic-git/issues with this error message: Could not read packfile at /home/grumpy/Developments/git-bench/.git-bench-repos/linux/.git/objects/pack/pack-b29e18a78d742c6965eff4e81123f8e2aeafab35.pack. The file may be missing, corrupted, or too large to read into memory.",
+      "maxMs": 0,
+      "meanMs": 0,
+      "medianMs": 0,
+      "minMs": 0,
+      "operation": "log-100",
+      "runner": "isomorphic-git",
+      "samples": 0
+    },
+    {
+      "error": "An internal error caused this command to fail.\n\nIf you're not a developer, report the bug to the developers of the application you're using. If this is a bug in isomorphic-git then you should create a proper bug yourselves. The bug should include a minimal reproduction and details about the version and environment.\n\nPlease file a bug report at https://github.com/isomorphic-git/isomorphic-git/issues with this error message: Could not read packfile at /home/grumpy/Developments/git-bench/.git-bench-repos/linux/.git/objects/pack/pack-b29e18a78d742c6965eff4e81123f8e2aeafab35.pack. The file may be missing, corrupted, or too large to read into memory.",
+      "maxMs": 0,
+      "meanMs": 0,
+      "medianMs": 0,
+      "minMs": 0,
+      "operation": "tracked-files",
+      "runner": "isomorphic-git",
+      "samples": 0
+    },
+    {
+      "error": "An internal error caused this command to fail.\n\nIf you're not a developer, report the bug to the developers of the application you're using. If this is a bug in isomorphic-git then you should create a proper bug yourselves. The bug should include a minimal reproduction and details about the version and environment.\n\nPlease file a bug report at https://github.com/isomorphic-git/isomorphic-git/issues with this error message: Could not read packfile at /home/grumpy/Developments/git-bench/.git-bench-repos/linux/.git/objects/pack/pack-b29e18a78d742c6965eff4e81123f8e2aeafab35.pack. The file may be missing, corrupted, or too large to read into memory.",
+      "maxMs": 0,
+      "meanMs": 0,
+      "medianMs": 0,
+      "minMs": 0,
+      "operation": "changed-files",
+      "runner": "isomorphic-git",
+      "samples": 0
+    },
+    {
+      "error": "An internal error caused this command to fail.\n\nIf you're not a developer, report the bug to the developers of the application you're using. If this is a bug in isomorphic-git then you should create a proper bug yourselves. The bug should include a minimal reproduction and details about the version and environment.\n\nPlease file a bug report at https://github.com/isomorphic-git/isomorphic-git/issues with this error message: Could not read packfile at /home/grumpy/Developments/git-bench/.git-bench-repos/linux/.git/objects/pack/pack-b29e18a78d742c6965eff4e81123f8e2aeafab35.pack. The file may be missing, corrupted, or too large to read into memory.",
+      "maxMs": 0,
+      "meanMs": 0,
+      "medianMs": 0,
+      "minMs": 0,
+      "operation": "read-25-blobs",
+      "runner": "isomorphic-git",
+      "samples": 0
+    }
+  ]
+}
