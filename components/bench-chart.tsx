@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import type { BarShapeProps, XAxisTickContentProps } from "recharts";
 
-import { BenchResultsTable } from "@/components/bench-results-table";
+import { BenchResultsTable } from "@/components/bench-table";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { benchData, findResult, chartConfig } from "@/lib/bench";
