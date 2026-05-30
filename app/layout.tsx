@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { DesignSystemProvider } from "@/components/providers/client";
+import { Footer } from "@/components/sections/footer";
+import { Header } from "@/components/sections/header";
 import { fonts } from "@/lib/fonts";
 
 const title = "Git Bench";
@@ -23,7 +25,9 @@ const RootLayout = ({ children }: RootLayoutProps) => (
           <div className="mx-auto w-full max-w-7xl flex-1 lg:grid lg:grid-cols-[1fr_42rem_1fr]">
             <div aria-hidden className="hidden lg:block" />
             <main className="mx-auto w-full px-4 sm:px-8 py-8 flex flex-col gap-12">
+              <Header />
               <div className="flex flex-1 flex-col gap-12">{children}</div>
+              <Footer />
             </main>
           </div>
         </div>

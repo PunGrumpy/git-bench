@@ -1,13 +1,10 @@
 import { Suspense } from "react";
 
-import { Header } from "@/components/sections/header";
 import { Results } from "@/components/sections/results";
 import { benchData } from "@/lib/bench";
 
 const Home = () => (
   <>
-    <Header />
-
     <div className="flex flex-col gap-2">
       <p>
         Benchmarking git client implementations on real-world repository
