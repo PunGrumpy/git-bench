@@ -20,6 +20,7 @@
     "paths": {
       "@/*": ["./*"]
     },
+    "types": ["bun"],
     "noEmit": true
   },
   "include": [
