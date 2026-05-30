@@ -1,3 +1,11 @@
+import Image from "next/image";
+
+import type { ChartConfig } from "@/components/ui/chart";
+import GitLogo from "@/public/git.png";
+import GitoxideLogo from "@/public/gitoxide.png";
+import IsomorphicGitLogo from "@/public/isomorphic-git.png";
+import Libgit2Logo from "@/public/libgit2.png";
+
 import results from "./results.json";
 
 export type RunnerId =
@@ -45,6 +53,41 @@ export interface BenchData {
 }
 
 export const benchData = results as BenchData;
+
+export const BASELINE_RUNNER = "git-cli" as const satisfies RunnerId;
+
+export const CHANGE_THRESHOLD_PERCENT = 0.5;
+
+export const chartConfig = {
+  "git-cli": {
+    color: "hsl(24 95% 53%)",
+    icon: () => (
+      <Image alt="" className="size-3.5 rounded-full" src={GitLogo} />
+    ),
+    label: "git CLI",
+  },
+  gitoxide: {
+    color: "hsl(38 92% 50%)",
+    icon: () => (
+      <Image alt="" className="size-3.5 rounded-full" src={GitoxideLogo} />
+    ),
+    label: "gitoxide",
+  },
+  "isomorphic-git": {
+    color: "hsl(142 71% 45%)",
+    icon: () => (
+      <Image alt="" className="size-3.5 rounded-full" src={IsomorphicGitLogo} />
+    ),
+    label: "isomorphic-git",
+  },
+  "libgit2-ffi": {
+    color: "hsl(217 91% 60%)",
+    icon: () => (
+      <Image alt="" className="size-3.5 rounded-full" src={Libgit2Logo} />
+    ),
+    label: "bun:ffi + libgit2",
+  },
+} satisfies ChartConfig;
 
 export const findResult = (
   runner: RunnerId,

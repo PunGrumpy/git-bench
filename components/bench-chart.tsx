@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import {
   Bar,
   BarChart,
@@ -18,46 +17,10 @@ import type {
 } from "recharts";
 
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
-import type { ChartConfig } from "@/components/ui/chart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { benchData, findResult } from "@/lib/bench";
+import { benchData, findResult, chartConfig } from "@/lib/bench";
 import type { OperationId, RunnerId } from "@/lib/bench";
 import { cn, formatMs } from "@/lib/utils";
-import GitLogo from "@/public/git.png";
-import GitoxideLogo from "@/public/gitoxide.png";
-import IsomorphicGitLogo from "@/public/isomorphic-git.png";
-import Libgit2Logo from "@/public/libgit2.png";
-
-const chartConfig = {
-  "git-cli": {
-    color: "hsl(24 95% 53%)",
-    icon: () => (
-      <Image alt="" className="size-3.5 rounded-full" src={GitLogo} />
-    ),
-    label: "git CLI",
-  },
-  gitoxide: {
-    color: "hsl(38 92% 50%)",
-    icon: () => (
-      <Image alt="" className="size-3.5 rounded-full" src={GitoxideLogo} />
-    ),
-    label: "gitoxide",
-  },
-  "isomorphic-git": {
-    color: "hsl(142 71% 45%)",
-    icon: () => (
-      <Image alt="" className="size-3.5 rounded-full" src={IsomorphicGitLogo} />
-    ),
-    label: "isomorphic-git",
-  },
-  "libgit2-ffi": {
-    color: "hsl(217 91% 60%)",
-    icon: () => (
-      <Image alt="" className="size-3.5 rounded-full" src={Libgit2Logo} />
-    ),
-    label: "bun:ffi + libgit2",
-  },
-} satisfies ChartConfig;
 
 interface ChartEntry {
   runnerId: RunnerId;
