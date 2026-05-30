@@ -21,7 +21,7 @@ const Home = () => (
           href="https://git-scm.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-1 hover:decoration-muted-foreground"
+          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
         >
           git CLI
         </a>
@@ -30,7 +30,7 @@ const Home = () => (
           href="https://libgit2.org"
           target="_blank"
           rel="noopener noreferrer"
-          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-1 hover:decoration-muted-foreground"
+          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
         >
           libgit2
         </a>{" "}
@@ -39,7 +39,7 @@ const Home = () => (
           href="https://bun.sh/docs/api/ffi"
           target="_blank"
           rel="noopener noreferrer"
-          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-1 hover:decoration-muted-foreground"
+          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
         >
           bun:ffi
         </a>
@@ -48,7 +48,7 @@ const Home = () => (
           href="https://github.com/GitoxideLabs/gitoxide"
           target="_blank"
           rel="noopener noreferrer"
-          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-1 hover:decoration-muted-foreground"
+          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
         >
           gitoxide
         </a>
@@ -57,7 +57,7 @@ const Home = () => (
           href="https://isomorphic-git.org"
           target="_blank"
           rel="noopener noreferrer"
-          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-1 hover:decoration-muted-foreground"
+          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
         >
           isomorphic-git
         </a>
@@ -69,7 +69,7 @@ const Home = () => (
           href="https://github.com/torvalds/linux"
           target="_blank"
           rel="noopener noreferrer"
-          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-1 hover:decoration-muted-foreground"
+          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
         >
           torvalds/linux
         </a>{" "}
@@ -82,7 +82,7 @@ const Home = () => (
           href="https://github.com/PunGrumpy/git-bench#readme"
           target="_blank"
           rel="noopener noreferrer"
-          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-1 hover:decoration-muted-foreground"
+          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
         >
           Source &amp; methodology
         </a>
