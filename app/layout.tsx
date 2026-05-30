@@ -1,30 +1,33 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import type { ReactNode } from "react";
 
 import { DesignSystemProvider } from "@/components/providers/client";
 import { fonts } from "@/lib/fonts";
-import { cn } from "@/lib/utils";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const title = "Git Bench";
+const description =
+  "Benchmarking git client implementations on real-world repository operations.";
 
-const title = "git-bench";
-
-export const metadata: Metadata = { description: "Next.js app", title };
+export const metadata: Metadata = { description, title };
 
 interface RootLayoutProps {
   readonly children: ReactNode;
 }
 
 const RootLayout = ({ children }: RootLayoutProps) => (
-  <html
-    lang="en"
-    suppressHydrationWarning
-    className={cn("font-sans", inter.variable)}
-  >
+  <html lang="en" suppressHydrationWarning>
     <body className={fonts}>
-      <DesignSystemProvider>{children}</DesignSystemProvider>
+      <DesignSystemProvider>
+        <div className="relative isolate flex min-h-dvh flex-col bg-background">
+          <div className="mx-auto w-full max-w-7xl flex-1 lg:grid lg:grid-cols-[1fr_42rem_1fr]">
+            <div aria-hidden className="hidden lg:block" />
+            <main className="mx-auto w-full max-w-2xl px-4 sm:px-8 py-8 flex flex-col gap-12">
+              <div className="flex flex-1 flex-col gap-12">{children}</div>
+            </main>
+          </div>
+        </div>
+      </DesignSystemProvider>
     </body>
   </html>
 );
