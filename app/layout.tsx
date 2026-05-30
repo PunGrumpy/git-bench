@@ -6,12 +6,49 @@ import { DesignSystemProvider } from "@/components/providers/client";
 import { Footer } from "@/components/sections/footer";
 import { Header } from "@/components/sections/header";
 import { fonts } from "@/lib/fonts";
+import { escapeJsonForHtml } from "@/lib/utils";
+
+const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+const origin = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? "localhost:3000";
+const baseUrl = `${protocol}://${origin}`;
 
 const title = "Git Bench";
 const description =
   "Benchmarking git client implementations on real-world repository operations.";
 
-export const metadata: Metadata = { description, title };
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "/",
+  },
+  description,
+  metadataBase: new URL(baseUrl),
+  openGraph: {
+    description,
+    locale: "en_US",
+    siteName: "Git Bench",
+    title,
+    type: "website",
+    url: "/",
+  },
+  title,
+  twitter: {
+    card: "summary_large_image",
+    description,
+    title,
+  },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  author: { "@type": "Person", name: "Noppakorn Kaewsalabnil" },
+  codeRepository: "https://github.com/PunGrumpy/git-bench",
+  description,
+  license: "https://opensource.org/licenses/MIT",
+  name: "Git Bench",
+  programmingLanguage: "TypeScript",
+  url: baseUrl,
+};
 
 interface RootLayoutProps {
   readonly children: ReactNode;
@@ -19,6 +56,12 @@ interface RootLayoutProps {
 
 const RootLayout = ({ children }: RootLayoutProps) => (
   <html lang="en" suppressHydrationWarning>
+    <head>
+      <script id="json-ld-website" type="application/ld+json">
+        {escapeJsonForHtml(JSON.stringify(jsonLd))}
+      </script>
+    </head>
+
     <body className={fonts}>
       <DesignSystemProvider>
         <div className="relative isolate flex min-h-dvh flex-col bg-background">

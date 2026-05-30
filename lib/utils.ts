@@ -25,3 +25,11 @@ export const formatMs = (ms: number, axis = false): string => {
   }
   return `${ms.toFixed(2)}ms`;
 };
+
+export const escapeJsonForHtml = (json: string): string =>
+  json
+    .replaceAll("<", "\\u003c")
+    .replaceAll(">", "\\u003e")
+    .replaceAll("&", "\\u0026")
+    .replaceAll("\u2028", "\\u2028")
+    .replaceAll("\u2029", "\\u2029");
