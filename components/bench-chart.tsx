@@ -245,7 +245,6 @@ export const BenchChart = () => {
             className={cn(
               "px-0 text-sm text-muted-foreground",
               "transition-[color,opacity] duration-150 ease-(--ease-out-strong)",
-              "active:scale-[0.98] active:opacity-80",
               "data-active:font-medium data-active:text-foreground",
               "group-data-horizontal/tabs:after:bottom-[-2.5px] group-data-horizontal/tabs:after:h-0.25",
               "group-data-horizontal/tabs:after:ease-(--ease-out-strong)",
