@@ -11,11 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type {
-  BarShapeProps,
-  LabelProps,
-  XAxisTickContentProps,
-} from "recharts";
+import type { BarShapeProps, XAxisTickContentProps } from "recharts";
 
 import { BenchResultsTable } from "@/components/bench-results-table";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
@@ -34,6 +30,9 @@ interface ChartEntry {
   isPenalty: boolean;
 }
 
+const formatEntryMedian = (entry: ChartEntry) =>
+  entry.isPenalty ? "err" : formatMs(entry.medianMs);
+
 const buildSeries = (operationId: OperationId): ChartEntry[] => {
   const ok = benchData.runners
     .map(({ id }) => findResult(id, operationId))
@@ -44,10 +43,11 @@ const buildSeries = (operationId: OperationId): ChartEntry[] => {
   return benchData.runners
     .map(({ id: runnerId }) => {
       const result = findResult(runnerId, operationId);
+      const fill = chartConfig[runnerId].color;
 
       if (!result || result.error) {
         return {
-          fill: chartConfig[runnerId].color,
+          fill,
           isPenalty: true,
           maxMs: penaltyMs,
           medianMs: penaltyMs,
@@ -58,7 +58,7 @@ const buildSeries = (operationId: OperationId): ChartEntry[] => {
       }
 
       return {
-        fill: chartConfig[runnerId].color,
+        fill,
         isPenalty: false,
         maxMs: result.maxMs,
         medianMs: result.medianMs,
@@ -92,7 +92,7 @@ const BenchTooltip = ({
       <p className="text-muted-foreground">
         Median:{" "}
         <span className="font-medium text-foreground">
-          {row.isPenalty ? "err" : formatMs(row.medianMs)}
+          {formatEntryMedian(row)}
         </span>
       </p>
       {!row.isPenalty && row.minMs !== row.maxMs && (
@@ -106,13 +106,14 @@ const BenchTooltip = ({
 
 const OperationChart = ({ operationId }: { operationId: OperationId }) => {
   const data = buildSeries(operationId);
+  const msValues = data.flatMap((p) => [p.medianMs, p.minMs, p.maxMs]);
 
   return (
     <ChartContainer
       className="aspect-5/4 w-full sm:aspect-2/1"
       config={chartConfig}
     >
-      <BarChart data={data} margin={{ bottom: 0, left: 0, right: 0, top: 24 }}>
+      <BarChart data={data} margin={{ bottom: 0, left: 0, right: 0, top: 36 }}>
         <CartesianGrid
           className="stroke-border/40"
           strokeDasharray="3 3"
@@ -161,13 +162,8 @@ const OperationChart = ({ operationId }: { operationId: OperationId }) => {
           allowDataOverflow
           axisLine={false}
           domain={[
-            Math.min(
-              ...data
-                .flatMap((p) => [p.medianMs, p.minMs, p.maxMs])
-                .map((v) => Math.max(v, 0.001))
-            ) * 0.8,
-            Math.max(...data.flatMap((p) => [p.medianMs, p.minMs, p.maxMs])) *
-              1.15,
+            Math.min(...msValues.map((v) => Math.max(v, 0.001))) * 0.8,
+            Math.max(...msValues) * 1.15,
           ]}
           scale="log"
           tick={{ fontSize: 10 }}
@@ -193,31 +189,14 @@ const OperationChart = ({ operationId }: { operationId: OperationId }) => {
             width={6}
           />
           <LabelList
-            content={({
-              payload,
-              width,
-              x,
-              y,
-            }: LabelProps & { payload?: ChartEntry }) =>
-              x !== undefined &&
-              y !== undefined &&
-              width !== undefined &&
-              payload ? (
-                <text
-                  dy={-12}
-                  fill={payload.fill}
-                  fontSize={10}
-                  fontWeight={500}
-                  pointerEvents="none"
-                  textAnchor="middle"
-                  x={Number(x) + Number(width) / 2}
-                  y={y}
-                >
-                  {payload.isPenalty ? "err" : formatMs(payload.medianMs)}
-                </text>
-              ) : null
-            }
+            fontSize={10}
+            fontWeight={500}
+            offset={12}
+            pointerEvents="none"
             position="top"
+            valueAccessor={(entry) =>
+              formatEntryMedian(entry.payload as ChartEntry)
+            }
           />
         </Bar>
       </BarChart>
