@@ -48,3 +48,6 @@ dist
 
 # Next.js
 .next
+
+# git-bench cloned repos
+.git-bench-repos/
