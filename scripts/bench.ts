@@ -2,6 +2,7 @@ import { writeFileSync, existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { performance } from "node:perf_hooks";
 
+import { sanitizeBenchError } from "../lib/bench/format-error";
 import { gitCliRunner } from "./runners/git-cli";
 import { gitoxideRunner } from "./runners/gitoxide";
 import { isomorphicGitRunner } from "./runners/isomorphic-git";
@@ -9,8 +10,12 @@ import { libgit2FfiRunner } from "./runners/libgit2-ffi";
 import type { OperationId, Runner, RunnerContext } from "./runners/types";
 
 const REPO_DIR = resolve(process.env.REPO_DIR ?? ".git-bench-repos/linux");
+const REPO_RELATIVE_PATH = ".git-bench-repos/linux";
 const RESULTS_PATH = resolve("lib/bench/results.json");
 const SAMPLES = Number(process.env.SAMPLES ?? 5);
+
+const toBenchError = (message: string) =>
+  sanitizeBenchError(message, REPO_RELATIVE_PATH);
 
 const OPERATIONS: OperationId[] = [
   "current-branch",
@@ -113,10 +118,12 @@ const main = async () => {
         await runner.setup(ctx);
       }
     } catch (error) {
-      console.error(`  setup failed: ${(error as Error).message}`);
+      const { message } = error as Error;
+      console.error(`  setup failed: ${message}`);
+      const setupError = toBenchError(`setup: ${message}`);
       for (const op of OPERATIONS) {
         results.push({
-          error: `setup: ${(error as Error).message}`,
+          error: setupError,
           maxMs: 0,
           meanMs: 0,
           medianMs: 0,
@@ -148,7 +155,7 @@ const main = async () => {
       } catch (error) {
         const msg = (error as Error).message;
         results.push({
-          error: msg,
+          error: toBenchError(msg),
           maxMs: 0,
           meanMs: 0,
           medianMs: 0,

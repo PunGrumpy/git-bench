@@ -1,6 +1,11 @@
 "use client";
 
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
@@ -12,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { BenchResult, OperationId } from "@/lib/bench";
+import type { BenchResult, OperationId, RunnerId } from "@/lib/bench";
 import {
   BASELINE_RUNNER,
   benchData,
@@ -20,6 +25,7 @@ import {
   findResult,
   chartConfig,
 } from "@/lib/bench";
+import { formatBenchError } from "@/lib/bench/format-error";
 import { cn, formatMs } from "@/lib/utils";
 
 interface BenchResultsTableProps {
@@ -47,6 +53,49 @@ const changeLabel = (ms: number, baseline: number) => {
     return null;
   }
   return `${change <= 0 ? "\u2193" : "\u2191"}${Math.round(Math.abs(change))}%`;
+};
+
+const BenchErrorCell = ({
+  error,
+  runnerId,
+}: {
+  error?: string;
+  runnerId: RunnerId;
+}) => {
+  const { detail, summary } = formatBenchError(
+    error ?? "No result",
+    benchData.repo.path
+  );
+
+  return (
+    <TableCell className="text-center text-xs">
+      <HoverCard closeDelay={80} openDelay={200}>
+        <HoverCardTrigger className="cursor-help text-muted-foreground underline decoration-dotted underline-offset-2">
+          err
+        </HoverCardTrigger>
+        <HoverCardContent
+          align="center"
+          className="w-80 rounded-md border border-dotted bg-popover p-3 text-xs"
+          sideOffset={6}
+        >
+          <p className="mb-2 font-medium">{chartConfig[runnerId].label}</p>
+          <p className="text-sm leading-snug text-foreground">{summary}</p>
+          {detail && (
+            <Collapsible className="mt-2">
+              <CollapsibleTrigger className="text-[10px] text-muted-foreground underline decoration-dotted underline-offset-2 hover:text-foreground">
+                Technical details
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <p className="mt-2 max-h-32 overflow-y-auto text-[10px] leading-snug text-muted-foreground no-scrollbar">
+                  {detail}
+                </p>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+        </HoverCardContent>
+      </HoverCard>
+    </TableCell>
+  );
 };
 
 export const BenchResultsTable = ({
@@ -117,27 +166,12 @@ export const BenchResultsTable = ({
                 </TableCell>
                 {results.map(({ id, result }) => {
                   if (!result || result.error) {
-                    const message = result?.error ?? "No result";
                     return (
-                      <TableCell className="text-center text-xs" key={id}>
-                        <HoverCard closeDelay={80} openDelay={200}>
-                          <HoverCardTrigger className="cursor-help text-muted-foreground underline decoration-dotted underline-offset-2">
-                            err
-                          </HoverCardTrigger>
-                          <HoverCardContent
-                            align="center"
-                            className="max-h-48 w-80 overflow-y-auto p-3 text-xs rounded-md no-scrollbar border border-dotted bg-popover"
-                            sideOffset={6}
-                          >
-                            <p className="mb-1 font-medium">
-                              {chartConfig[id].label}
-                            </p>
-                            <p className="whitespace-pre-wrap text-muted-foreground">
-                              {message}
-                            </p>
-                          </HoverCardContent>
-                        </HoverCard>
-                      </TableCell>
+                      <BenchErrorCell
+                        error={result?.error}
+                        key={id}
+                        runnerId={id}
+                      />
                     );
                   }
 
