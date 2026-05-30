@@ -75,10 +75,20 @@ const time = async (fn: () => Promise<unknown>): Promise<number> => {
 };
 
 const stats = (samples: number[]) => {
+  if (samples.length === 0) {
+    return {
+      maxMs: 0,
+      meanMs: 0,
+      medianMs: 0,
+      minMs: 0,
+      samples: 0,
+    };
+  }
   const sorted = [...samples].toSorted((a, b) => a - b);
   const sum = sorted.reduce((a, b) => a + b, 0);
+  const lastIndex = sorted.length - 1;
   return {
-    maxMs: sorted.at(-1),
+    maxMs: sorted[lastIndex],
     meanMs: sum / sorted.length,
     medianMs: sorted[Math.floor(sorted.length / 2)],
     minMs: sorted[0],
@@ -170,7 +180,9 @@ const main = async () => {
   console.log(`\nWrote ${results.length} samples to ${RESULTS_PATH}`);
 };
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
   console.error(error);
   process.exit(1);
-});
+}

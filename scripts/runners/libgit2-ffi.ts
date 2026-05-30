@@ -61,135 +61,164 @@ const outPtr = () => new BigUint64Array(1);
 export const libgit2FfiRunner: Runner = {
   id: "libgit2-ffi",
   label: "node:ffi + libgit2",
-  async run(op: OperationId, ctx: RunnerContext) {
-    switch (op) {
-      case "current-branch": {
-        const refOut = outPtr();
-        ok(symbols.git_repository_head(refOut, repoPtr), "git_repository_head");
-        const ref = rd(refOut);
-        const name = String(symbols.git_reference_shorthand(ref));
-        symbols.git_reference_free(ref);
-        return name;
-      }
-
-      case "status": {
-        const listOut = outPtr();
-        ok(
-          symbols.git_status_list_new(listOut, repoPtr, null),
-          "git_status_list_new"
-        );
-        const list = rd(listOut);
-        const count = Number(symbols.git_status_list_entrycount(list));
-        symbols.git_status_list_free(list);
-        return count;
-      }
-
-      case "log-100": {
-        const walkOut = outPtr();
-        ok(symbols.git_revwalk_new(walkOut, repoPtr), "git_revwalk_new");
-        const walk = rd(walkOut);
-        ok(symbols.git_revwalk_push_head(walk), "git_revwalk_push_head");
-        const oid = Buffer.alloc(20);
-        let count = 0;
-        for (let i = 0; i < 100; i++) {
-          const rc = symbols.git_revwalk_next(oid, walk);
-          if (rc === GIT_ITEROVER) {
-            break;
-          }
-          if (rc < 0) {
-            symbols.git_revwalk_free(walk);
-            throw new Error(`git_revwalk_next failed: rc=${rc}`);
-          }
-          count++;
-        }
-        symbols.git_revwalk_free(walk);
-        return count;
-      }
-
-      case "tracked-files": {
-        const idxOut = outPtr();
-        ok(
-          symbols.git_repository_index(idxOut, repoPtr),
-          "git_repository_index"
-        );
-        const idx = rd(idxOut);
-        const count = Number(symbols.git_index_entrycount(idx));
-        // Touch every entry so we're comparing enumeration cost, not just count.
-        for (let i = 0; i < count; i++) {
-          symbols.git_index_get_byindex(idx, BigInt(i));
-        }
-        symbols.git_index_free(idx);
-        return count;
-      }
-
-      case "changed-files": {
-        const headOut = outPtr();
-        const parentOut = outPtr();
-        ok(
-          symbols.git_revparse_single(headOut, repoPtr, cstr("HEAD")),
-          "revparse HEAD"
-        );
-        ok(
-          symbols.git_revparse_single(parentOut, repoPtr, cstr("HEAD~1")),
-          "revparse HEAD~1"
-        );
-        const headObj = rd(headOut);
-        const parentObj = rd(parentOut);
-
-        const treeAOut = outPtr();
-        const treeBOut = outPtr();
-        ok(
-          symbols.git_commit_tree(treeAOut, parentObj),
-          "git_commit_tree parent"
-        );
-        ok(symbols.git_commit_tree(treeBOut, headObj), "git_commit_tree head");
-        const treeA = rd(treeAOut);
-        const treeB = rd(treeBOut);
-
-        const diffOut = outPtr();
-        ok(
-          symbols.git_diff_tree_to_tree(diffOut, repoPtr, treeA, treeB, null),
-          "git_diff_tree_to_tree"
-        );
-        const diff = rd(diffOut);
-        const numDeltas = Number(symbols.git_diff_num_deltas(diff));
-
-        symbols.git_diff_free(diff);
-        symbols.git_tree_free(treeA);
-        symbols.git_tree_free(treeB);
-        symbols.git_object_free(headObj);
-        symbols.git_object_free(parentObj);
-        return numDeltas;
-      }
-
-      case "read-25-blobs": {
-        const sizes: number[] = [];
-        for (const p of ctx.blobPaths) {
-          const objOut = outPtr();
+  run(op: OperationId, ctx: RunnerContext): Promise<unknown> {
+    const result = (() => {
+      switch (op) {
+        case "current-branch": {
+          const refOut = outPtr();
           ok(
-            symbols.git_revparse_single(objOut, repoPtr, cstr(`HEAD:${p}`)),
-            `revparse HEAD:${p}`
+            symbols.git_repository_head(refOut, repoPtr),
+            "git_repository_head"
           );
-          const obj = rd(objOut);
-          sizes.push(Number(symbols.git_blob_rawsize(obj)));
-          symbols.git_object_free(obj);
+          const ref = rd(refOut);
+          const name = String(symbols.git_reference_shorthand(ref));
+          symbols.git_reference_free(ref);
+          return name;
         }
-        return sizes;
+
+        case "status": {
+          const listOut = outPtr();
+          ok(
+            symbols.git_status_list_new(listOut, repoPtr, null),
+            "git_status_list_new"
+          );
+          const list = rd(listOut);
+          const count = Number(symbols.git_status_list_entrycount(list));
+          symbols.git_status_list_free(list);
+          return count;
+        }
+
+        case "log-100": {
+          const walkOut = outPtr();
+          ok(symbols.git_revwalk_new(walkOut, repoPtr), "git_revwalk_new");
+          const walk = rd(walkOut);
+          ok(symbols.git_revwalk_push_head(walk), "git_revwalk_push_head");
+          const oid = Buffer.alloc(20);
+          let count = 0;
+          for (let i = 0; i < 100; i += 1) {
+            const rc = symbols.git_revwalk_next(oid, walk);
+            if (rc === GIT_ITEROVER) {
+              break;
+            }
+            if (rc < 0) {
+              symbols.git_revwalk_free(walk);
+              throw new Error(`git_revwalk_next failed: rc=${rc}`);
+            }
+            count += 1;
+          }
+          symbols.git_revwalk_free(walk);
+          return count;
+        }
+
+        case "tracked-files": {
+          const idxOut = outPtr();
+          ok(
+            symbols.git_repository_index(idxOut, repoPtr),
+            "git_repository_index"
+          );
+          const idx = rd(idxOut);
+          const count = Number(symbols.git_index_entrycount(idx));
+          // Touch every entry so we're comparing enumeration cost, not just count.
+          for (let i = 0; i < count; i += 1) {
+            symbols.git_index_get_byindex(idx, BigInt(i));
+          }
+          symbols.git_index_free(idx);
+          return count;
+        }
+
+        case "changed-files": {
+          const headOut = outPtr();
+          const parentOut = outPtr();
+          ok(
+            symbols.git_revparse_single(headOut, repoPtr, cstr("HEAD")),
+            "revparse HEAD"
+          );
+          ok(
+            symbols.git_revparse_single(parentOut, repoPtr, cstr("HEAD~1")),
+            "revparse HEAD~1"
+          );
+          const headObj = rd(headOut);
+          const parentObj = rd(parentOut);
+
+          const treeAOut = outPtr();
+          const treeBOut = outPtr();
+          ok(
+            symbols.git_commit_tree(treeAOut, parentObj),
+            "git_commit_tree parent"
+          );
+          ok(
+            symbols.git_commit_tree(treeBOut, headObj),
+            "git_commit_tree head"
+          );
+          const treeA = rd(treeAOut);
+          const treeB = rd(treeBOut);
+
+          const diffOut = outPtr();
+          ok(
+            symbols.git_diff_tree_to_tree(diffOut, repoPtr, treeA, treeB, null),
+            "git_diff_tree_to_tree"
+          );
+          const diff = rd(diffOut);
+          const numDeltas = Number(symbols.git_diff_num_deltas(diff));
+
+          symbols.git_diff_free(diff);
+          symbols.git_tree_free(treeA);
+          symbols.git_tree_free(treeB);
+          symbols.git_object_free(headObj);
+          symbols.git_object_free(parentObj);
+          return numDeltas;
+        }
+
+        case "read-25-blobs": {
+          const sizes: number[] = [];
+          for (const p of ctx.blobPaths) {
+            const objOut = outPtr();
+            ok(
+              symbols.git_revparse_single(objOut, repoPtr, cstr(`HEAD:${p}`)),
+              `revparse HEAD:${p}`
+            );
+            const obj = rd(objOut);
+            sizes.push(Number(symbols.git_blob_rawsize(obj)));
+            symbols.git_object_free(obj);
+          }
+          return sizes;
+        }
+        default: {
+          const _exhaustive: never = op;
+          throw new Error(`Unhandled operation: ${_exhaustive}`);
+        }
       }
-    }
+    })();
+    return Promise.resolve(result);
   },
   async setup(ctx: RunnerContext) {
     bunFfi = await import("bun:ffi");
     const { FFIType } = bunFfi;
     signatures = {
-      // lifecycle
+      git_blob_rawsize: { args: [FFIType.ptr], returns: FFIType.u64 },
+      git_commit_tree: {
+        args: [FFIType.ptr, FFIType.ptr],
+        returns: FFIType.i32,
+      },
+      git_diff_free: { args: [FFIType.ptr], returns: FFIType.void },
+      git_diff_num_deltas: { args: [FFIType.ptr], returns: FFIType.u64 },
+      git_diff_tree_to_tree: {
+        args: [FFIType.ptr, FFIType.ptr, FFIType.ptr, FFIType.ptr, FFIType.ptr],
+        returns: FFIType.i32,
+      },
+      git_index_entrycount: { args: [FFIType.ptr], returns: FFIType.u64 },
+      git_index_free: { args: [FFIType.ptr], returns: FFIType.void },
+      git_index_get_byindex: {
+        args: [FFIType.ptr, FFIType.u64],
+        returns: FFIType.ptr,
+      },
       git_libgit2_init: { args: [], returns: FFIType.i32 },
       git_libgit2_shutdown: { args: [], returns: FFIType.i32 },
-
-      // repository
-      git_repository_open: {
-        args: [FFIType.ptr, FFIType.cstring],
-        returns: FFIType.i32,
+      git_object_free: { args: [FFIType.ptr], returns: FFIType.void },
+      git_reference_free: { args: [FFIType.ptr], returns: FFIType.void },
+      git_reference_shorthand: {
+        args: [FFIType.ptr],
+        returns: FFIType.cstring,
       },
       git_repository_free: { args: [FFIType.ptr], returns: FFIType.void },
       git_repository_head: {
@@ -200,63 +229,34 @@ export const libgit2FfiRunner: Runner = {
         args: [FFIType.ptr, FFIType.ptr],
         returns: FFIType.i32,
       },
-
-      // reference
-      git_reference_shorthand: {
-        args: [FFIType.ptr],
-        returns: FFIType.cstring,
-      },
-      git_reference_free: { args: [FFIType.ptr], returns: FFIType.void },
-
-      // status
-      git_status_list_new: {
-        args: [FFIType.ptr, FFIType.ptr, FFIType.ptr],
+      git_repository_open: {
+        args: [FFIType.ptr, FFIType.cstring],
         returns: FFIType.i32,
       },
+      git_revparse_single: {
+        args: [FFIType.ptr, FFIType.ptr, FFIType.cstring],
+        returns: FFIType.i32,
+      },
+      git_revwalk_free: { args: [FFIType.ptr], returns: FFIType.void },
+      git_revwalk_new: {
+        args: [FFIType.ptr, FFIType.ptr],
+        returns: FFIType.i32,
+      },
+      git_revwalk_next: {
+        args: [FFIType.ptr, FFIType.ptr],
+        returns: FFIType.i32,
+      },
+      git_revwalk_push_head: { args: [FFIType.ptr], returns: FFIType.i32 },
       git_status_list_entrycount: {
         args: [FFIType.ptr],
         returns: FFIType.u64,
       },
       git_status_list_free: { args: [FFIType.ptr], returns: FFIType.void },
-
-      // revwalk
-      git_revwalk_new: {
-        args: [FFIType.ptr, FFIType.ptr],
-        returns: FFIType.i32,
-      },
-      git_revwalk_push_head: { args: [FFIType.ptr], returns: FFIType.i32 },
-      git_revwalk_next: {
-        args: [FFIType.ptr, FFIType.ptr],
-        returns: FFIType.i32,
-      },
-      git_revwalk_free: { args: [FFIType.ptr], returns: FFIType.void },
-
-      // index
-      git_index_entrycount: { args: [FFIType.ptr], returns: FFIType.u64 },
-      git_index_get_byindex: {
-        args: [FFIType.ptr, FFIType.u64],
-        returns: FFIType.ptr,
-      },
-      git_index_free: { args: [FFIType.ptr], returns: FFIType.void },
-
-      // revparse / object / commit / tree / diff / blob
-      git_revparse_single: {
-        args: [FFIType.ptr, FFIType.ptr, FFIType.cstring],
-        returns: FFIType.i32,
-      },
-      git_object_free: { args: [FFIType.ptr], returns: FFIType.void },
-      git_commit_tree: {
-        args: [FFIType.ptr, FFIType.ptr],
+      git_status_list_new: {
+        args: [FFIType.ptr, FFIType.ptr, FFIType.ptr],
         returns: FFIType.i32,
       },
       git_tree_free: { args: [FFIType.ptr], returns: FFIType.void },
-      git_diff_tree_to_tree: {
-        args: [FFIType.ptr, FFIType.ptr, FFIType.ptr, FFIType.ptr, FFIType.ptr],
-        returns: FFIType.i32,
-      },
-      git_diff_num_deltas: { args: [FFIType.ptr], returns: FFIType.u64 },
-      git_diff_free: { args: [FFIType.ptr], returns: FFIType.void },
-      git_blob_rawsize: { args: [FFIType.ptr], returns: FFIType.u64 },
     };
 
     lib = loadLib();
@@ -275,11 +275,12 @@ export const libgit2FfiRunner: Runner = {
     );
     repoPtr = rd(repoOut);
   },
-  async teardown() {
+  teardown(): Promise<void> {
     if (repoPtr) {
       symbols.git_repository_free(repoPtr);
       repoPtr = 0;
     }
     symbols.git_libgit2_shutdown();
+    return Promise.resolve();
   },
 };

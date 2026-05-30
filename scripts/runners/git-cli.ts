@@ -1,26 +1,14 @@
-import { spawn } from "node:child_process";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 
 import type { OperationId, Runner, RunnerContext } from "./types";
 
-const run = (cwd: string, args: string[]): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const proc = spawn("git", args, { cwd });
-    let stdout = "";
-    let stderr = "";
-    proc.stdout.on("data", (d) => {
-      stdout += d.toString();
-    });
-    proc.stderr.on("data", (d) => {
-      stderr += d.toString();
-    });
-    proc.on("close", (code) => {
-      if (code === 0) {
-        resolve(stdout);
-      } else {
-        reject(new Error(`git ${args.join(" ")} exited ${code}: ${stderr}`));
-      }
-    });
-  });
+const execFileAsync = promisify(execFile);
+
+const run = async (cwd: string, args: string[]): Promise<string> => {
+  const { stdout } = await execFileAsync("git", args, { cwd });
+  return stdout;
+};
 
 export const gitCliRunner: Runner = {
   id: "git-cli",
@@ -29,23 +17,33 @@ export const gitCliRunner: Runner = {
     const { repoDir, blobPaths } = ctx;
     switch (op) {
       case "current-branch": {
-        return (await run(repoDir, ["symbolic-ref", "--short", "HEAD"])).trim();
+        const out = await run(repoDir, ["symbolic-ref", "--short", "HEAD"]);
+        return out.trim();
       }
       case "status": {
         return await run(repoDir, ["status", "--porcelain=v1"]);
       }
       case "log-100": {
-        return (
-          await run(repoDir, ["log", "-n", "100", "--pretty=format:%H %s"])
-        ).split("\n");
+        const out = await run(repoDir, [
+          "log",
+          "-n",
+          "100",
+          "--pretty=format:%H %s",
+        ]);
+        return out.split("\n");
       }
       case "tracked-files": {
-        return (await run(repoDir, ["ls-files"])).split("\n");
+        const out = await run(repoDir, ["ls-files"]);
+        return out.split("\n");
       }
       case "changed-files": {
-        return (
-          await run(repoDir, ["diff", "--name-only", "HEAD~1", "HEAD"])
-        ).split("\n");
+        const out = await run(repoDir, [
+          "diff",
+          "--name-only",
+          "HEAD~1",
+          "HEAD",
+        ]);
+        return out.split("\n");
       }
       case "read-25-blobs": {
         const out: string[] = [];
@@ -53,6 +51,10 @@ export const gitCliRunner: Runner = {
           out.push(await run(repoDir, ["show", `HEAD:${p}`]));
         }
         return out;
+      }
+      default: {
+        const _exhaustive: never = op;
+        throw new Error(`Unhandled operation: ${_exhaustive}`);
       }
     }
   },

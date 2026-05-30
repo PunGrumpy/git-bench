@@ -26,7 +26,8 @@ export const isomorphicGitRunner: Runner = {
       }
       case "changed-files": {
         const head = await git.resolveRef({ ...base, ref: "HEAD" });
-        const parent = (await git.log({ ...base, depth: 2 }))[1].oid;
+        const recentCommits = await git.log({ ...base, depth: 2 });
+        const parent = recentCommits[1].oid;
         const a = await git.walk({
           ...base,
           map: async (
@@ -59,6 +60,10 @@ export const isomorphicGitRunner: Runner = {
           out.push(blob);
         }
         return out;
+      }
+      default: {
+        const _exhaustive: never = op;
+        throw new Error(`Unhandled operation: ${_exhaustive}`);
       }
     }
   },

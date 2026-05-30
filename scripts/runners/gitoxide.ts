@@ -1,29 +1,16 @@
-import { spawn } from "node:child_process";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 
 import type { OperationId, Runner, RunnerContext } from "./types";
 
 const GIX = process.env.GIX_BIN ?? "gix";
 
-const run = (cwd: string, args: string[]): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const proc = spawn(GIX, args, { cwd });
-    let stdout = "";
-    let stderr = "";
-    proc.stdout.on("data", (d) => {
-      stdout += d.toString();
-    });
-    proc.stderr.on("data", (d) => {
-      stderr += d.toString();
-    });
-    proc.on("error", reject);
-    proc.on("close", (code) => {
-      if (code === 0) {
-        resolve(stdout);
-      } else {
-        reject(new Error(`gix ${args.join(" ")} exited ${code}: ${stderr}`));
-      }
-    });
-  });
+const execFileAsync = promisify(execFile);
+
+const run = async (cwd: string, args: string[]): Promise<string> => {
+  const { stdout } = await execFileAsync(GIX, args, { cwd });
+  return stdout;
+};
 
 export const gitoxideRunner: Runner = {
   id: "gitoxide",
@@ -32,23 +19,29 @@ export const gitoxideRunner: Runner = {
     const { repoDir, blobPaths } = ctx;
     switch (op) {
       case "current-branch": {
-        return (await run(repoDir, ["branch", "list"])).trim();
+        const out = await run(repoDir, ["branch", "list"]);
+        return out.trim();
       }
       case "status": {
         return await run(repoDir, ["status"]);
       }
       case "log-100": {
-        return (
-          await run(repoDir, ["revision", "list", "HEAD", "--limit", "100"])
-        ).split("\n");
+        const out = await run(repoDir, [
+          "revision",
+          "list",
+          "HEAD",
+          "--limit",
+          "100",
+        ]);
+        return out.split("\n");
       }
       case "tracked-files": {
-        return (await run(repoDir, ["index", "entries"])).split("\n");
+        const out = await run(repoDir, ["index", "entries"]);
+        return out.split("\n");
       }
       case "changed-files": {
-        return (await run(repoDir, ["diff", "tree", "HEAD~1", "HEAD"])).split(
-          "\n"
-        );
+        const out = await run(repoDir, ["diff", "tree", "HEAD~1", "HEAD"]);
+        return out.split("\n");
       }
       case "read-25-blobs": {
         const out: string[] = [];
@@ -56,6 +49,10 @@ export const gitoxideRunner: Runner = {
           out.push(await run(repoDir, ["cat", `HEAD:${p}`]));
         }
         return out;
+      }
+      default: {
+        const _exhaustive: never = op;
+        throw new Error(`Unhandled operation: ${_exhaustive}`);
       }
     }
   },
