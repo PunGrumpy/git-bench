@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -208,6 +208,15 @@ export const BenchChart = () => {
   const [operation, setOperation] = useState<OperationId>(
     benchData.operations[0]?.id ?? "status"
   );
+  const tabRefs = useRef(new Map<OperationId, HTMLButtonElement | null>());
+
+  useEffect(() => {
+    tabRefs.current.get(operation)?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "nearest",
+    });
+  }, [operation]);
 
   return (
     <Tabs
@@ -215,27 +224,32 @@ export const BenchChart = () => {
       onValueChange={(value) => setOperation(value as OperationId)}
       value={operation}
     >
-      <TabsList
-        className="gap-x-5 gap-y-0.5 border-b border-dotted bg-transparent p-0"
-        variant="line"
-      >
-        {benchData.operations.map((op) => (
-          <TabsTrigger
-            className={cn(
-              "px-0 text-sm text-muted-foreground",
-              "transition-[color,opacity] duration-150 ease-(--ease-out-strong)",
-              "data-active:font-medium data-active:text-foreground",
-              "group-data-horizontal/tabs:after:bottom-[-2.5px] group-data-horizontal/tabs:after:h-0.25",
-              "group-data-horizontal/tabs:after:ease-(--ease-out-strong)",
-              "focus-visible:outline-none focus-visible:ring-0"
-            )}
-            key={op.id}
-            value={op.id}
-          >
-            {op.label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+      <div className="-mx-4 max-w-full overflow-x-auto px-4 scrollbar-hide sm:mx-0 sm:px-0">
+        <TabsList
+          className="w-max gap-x-3 gap-y-0.5 border-b border-dotted bg-transparent p-0 sm:gap-x-5"
+          variant="line"
+        >
+          {benchData.operations.map((op) => (
+            <TabsTrigger
+              className={cn(
+                "shrink-0 flex-none px-0 text-sm text-muted-foreground",
+                "transition-[color,opacity] duration-150 ease-(--ease-out-strong)",
+                "data-active:font-medium data-active:text-foreground",
+                "group-data-horizontal/tabs:after:bottom-[-2.5px] group-data-horizontal/tabs:after:h-0.25",
+                "group-data-horizontal/tabs:after:ease-(--ease-out-strong)",
+                "focus-visible:outline-none focus-visible:ring-0"
+              )}
+              key={op.id}
+              ref={(element) => {
+                tabRefs.current.set(op.id, element);
+              }}
+              value={op.id}
+            >
+              {op.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
 
       {benchData.operations.map((op) => (
         <TabsContent className="space-y-2" key={op.id} value={op.id}>
