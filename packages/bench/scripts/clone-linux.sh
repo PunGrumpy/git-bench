@@ -3,7 +3,10 @@
 # Clone torvalds/linux for git-bench. Full clone, ~5 GB.
 set -euo pipefail
 
-REPO_DIR="${REPO_DIR:-.git-bench-repos/linux}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEFAULT_REPO_DIR="$SCRIPT_DIR/../../../.git-bench-repos/linux"
+
+REPO_DIR="${REPO_DIR:-$DEFAULT_REPO_DIR}"
 REMOTE="${REMOTE:-https://github.com/torvalds/linux.git}"
 
 if [ -d "$REPO_DIR/.git" ]; then

@@ -2,16 +2,21 @@ import { writeFileSync, existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { performance } from "node:perf_hooks";
 
-import { sanitizeBenchError } from "../lib/bench/format-error";
+import { sanitizeBenchError } from "./format-error";
 import { gitCliRunner } from "./runners/git-cli";
 import { gitoxideRunner } from "./runners/gitoxide";
 import { isomorphicGitRunner } from "./runners/isomorphic-git";
 import { libgit2FfiRunner } from "./runners/libgit2-ffi";
 import type { OperationId, Runner, RunnerContext } from "./runners/types";
 
-const REPO_DIR = resolve(process.env.REPO_DIR ?? ".git-bench-repos/linux");
+const __filename = import.meta.filename;
+const __dirname = import.meta.dirname;
+
+const REPO_DIR = resolve(
+  process.env.REPO_DIR ?? resolve(__dirname, "../../../.git-bench-repos/linux")
+);
 const REPO_RELATIVE_PATH = ".git-bench-repos/linux";
-const RESULTS_PATH = resolve("lib/bench/results.json");
+const RESULTS_PATH = resolve(__dirname, "../results.json");
 const SAMPLES = Number(process.env.SAMPLES ?? 5);
 
 const toBenchError = (message: string) =>
@@ -103,9 +108,7 @@ const stats = (samples: number[]) => {
 
 const main = async () => {
   if (!existsSync(REPO_DIR)) {
-    console.error(
-      `Repo not found at ${REPO_DIR}. Run scripts/clone-linux.sh first.`
-    );
+    console.error(`Repo not found at ${REPO_DIR}. Run bun bench:clone first.`);
     process.exit(1);
   }
   const ctx: RunnerContext = { blobPaths: BLOB_PATHS, repoDir: REPO_DIR };

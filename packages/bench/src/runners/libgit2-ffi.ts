@@ -27,6 +27,7 @@ const LIB_CANDIDATES = [
   "libgit2.so.1",
   "libgit2.so",
   "libgit2.dylib",
+  "libgit2.openbsd.so",
 ].filter(Boolean) as string[];
 
 const GIT_ITEROVER = -31;
