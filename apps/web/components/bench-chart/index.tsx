@@ -10,10 +10,8 @@ import type { OperationId } from "@/lib/bench";
 import { cn } from "@/lib/utils";
 
 const OperationChart = dynamic(
-  async () => {
-    const { OperationChart: Plot } = await import("./plot");
-    return { default: Plot };
-  },
+  // oxlint-disable-next-line promise/prefer-await-to-then
+  () => import("./plot").then((mod) => mod.OperationChart),
   { ssr: false }
 );
 
