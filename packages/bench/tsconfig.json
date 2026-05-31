@@ -1,0 +1,7 @@
+{
+  "extends": "@git-bench/typescript-config/base.json",
+  "compilerOptions": {
+    "types": ["bun", "node"]
+  },
+  "include": ["src/**/*"]
+}

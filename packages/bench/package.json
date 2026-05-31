@@ -1,0 +1,24 @@
+{
+  "name": "@git-bench/bench",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./results.json": "./results.json"
+  },
+  "scripts": {
+    "bench": "bun run src/bench.ts",
+    "bench:clone": "bash scripts/clone-linux.sh",
+    "typecheck": "tsgo --noEmit"
+  },
+  "dependencies": {
+    "isomorphic-git": "^1.27.1"
+  },
+  "devDependencies": {
+    "@git-bench/typescript-config": "workspace:*",
+    "@types/bun": "^1.3.14",
+    "@types/node": "^25",
+    "typescript": "^6"
+  }
+}
