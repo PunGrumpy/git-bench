@@ -1,7 +1,16 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { Results } from "@/components/sections/results";
 import { benchData } from "@/lib/bench";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  description:
+    "Benchmarking git client implementations on real-world repository operations.",
+  openGraph: { url: "/" },
+  title: "Git Bench",
+};
 
 const Home = () => (
   <>
@@ -79,7 +88,7 @@ const Home = () => (
         >
           torvalds/linux
         </a>{" "}
-        — ~5 GB of objects, ~1.5M commits, ~80K tracked files. Each operation is
+        (~5 GB of objects, ~1.5M commits, ~80K tracked files). Each operation is
         timed across multiple samples; the median is reported.
       </p>
       <p>
