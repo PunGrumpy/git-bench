@@ -1,6 +1,6 @@
 # Git Bench
 
-![Preview](./public/preview.png)
+![Preview](https://git-benchmark.vercel.app/preview.png)
 
 Benchmarks git client implementations against a clone of [`torvalds/linux`](https://github.com/torvalds/linux):
 
