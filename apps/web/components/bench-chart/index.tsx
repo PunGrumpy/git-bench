@@ -42,7 +42,7 @@ export const BenchChart = () => {
     >
       <div className="-mx-4 max-w-full overflow-x-auto px-4 scrollbar-hide sm:mx-0 sm:px-0">
         <TabsList
-          className="w-full gap-x-3 justify-between border-b border-dotted bg-transparent p-0"
+          className="md:w-full w-max gap-x-3 justify-between border-b border-dotted bg-transparent p-0"
           variant="line"
         >
           {benchData.operations.map((op) => (
