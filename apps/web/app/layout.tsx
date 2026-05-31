@@ -6,11 +6,8 @@ import { DesignSystemProvider } from "@/components/providers/client";
 import { Footer } from "@/components/sections/footer";
 import { Header } from "@/components/sections/header";
 import { fonts } from "@/lib/fonts";
+import { url } from "@/lib/url";
 import { escapeJsonForHtml } from "@/lib/utils";
-
-const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
-const origin = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? "localhost:3000";
-const baseUrl = `${protocol}://${origin}`;
 
 const title = "Git Bench";
 const description =
@@ -21,7 +18,7 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   description,
-  metadataBase: new URL(baseUrl),
+  metadataBase: new URL(url),
   openGraph: {
     description,
     locale: "en_US",
@@ -47,7 +44,7 @@ const jsonLd = {
   license: "https://opensource.org/licenses/MIT",
   name: "Git Bench",
   programmingLanguage: "TypeScript",
-  url: baseUrl,
+  url,
 };
 
 interface RootLayoutProps {
