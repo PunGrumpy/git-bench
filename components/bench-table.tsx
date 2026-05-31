@@ -165,6 +165,18 @@ export const BenchResultsTable = ({
                   </p>
                 </TableCell>
                 {results.map(({ id, result }) => {
+                  const runner = benchData.runners.find((r) => r.id === id);
+                  if (runner?.comingSoon) {
+                    return (
+                      <TableCell
+                        className="text-center text-[11px] text-muted-foreground/40 italic bg-muted/10 font-normal"
+                        key={id}
+                      >
+                        coming soon
+                      </TableCell>
+                    );
+                  }
+
                   if (!result || result.error) {
                     return (
                       <BenchErrorCell

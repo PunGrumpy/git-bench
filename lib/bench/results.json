@@ -56,6 +56,12 @@
       "id": "isomorphic-git",
       "label": "isomorphic-git",
       "description": "Pure JS over node:fs."
+    },
+    {
+      "id": "ziggit",
+      "label": "ziggit",
+      "description": "Pure Zig implementation (Coming Soon).",
+      "comingSoon": true
     }
   ],
   "results": [

@@ -5,6 +5,7 @@ import GitLogo from "@/public/git.png";
 import GitoxideLogo from "@/public/gitoxide.png";
 import IsomorphicGitLogo from "@/public/isomorphic-git.png";
 import Libgit2Logo from "@/public/libgit2.png";
+import ZiggitLogo from "@/public/ziggit.png";
 
 import results from "./results.json";
 
@@ -12,7 +13,8 @@ export type RunnerId =
   | "git-cli"
   | "libgit2-ffi"
   | "gitoxide"
-  | "isomorphic-git";
+  | "isomorphic-git"
+  | "ziggit";
 export type OperationId =
   | "current-branch"
   | "status"
@@ -31,6 +33,7 @@ export interface BenchRunner {
   readonly id: RunnerId;
   readonly label: string;
   readonly description: string;
+  readonly comingSoon?: boolean;
 }
 
 export interface BenchResult {
@@ -86,6 +89,13 @@ export const chartConfig = {
       <Image alt="" className="size-3.5 rounded-full" src={Libgit2Logo} />
     ),
     label: "bun:ffi + libgit2",
+  },
+  ziggit: {
+    color: "hsl(37 94% 54%)",
+    icon: () => (
+      <Image alt="" className="size-3.5 rounded-full" src={ZiggitLogo} />
+    ),
+    label: "ziggit",
   },
 } satisfies ChartConfig;
 

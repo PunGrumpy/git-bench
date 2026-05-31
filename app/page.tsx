@@ -57,8 +57,17 @@ const Home = () => (
           className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
         >
           isomorphic-git
-        </a>
-        .
+        </a>{" "}
+        (with{" "}
+        <a
+          href="https://github.com/hdresearch/ziggit"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
+        >
+          ziggit
+        </a>{" "}
+        coming soon).
       </p>
       <p>
         The target is a full clone of{" "}

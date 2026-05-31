@@ -35,12 +35,14 @@ const formatEntryMedian = (entry: ChartEntry) =>
 
 const buildSeries = (operationId: OperationId): ChartEntry[] => {
   const ok = benchData.runners
+    .filter((r) => !r.comingSoon)
     .map(({ id }) => findResult(id, operationId))
     .filter((r): r is NonNullable<typeof r> => !!r && !r.error);
   const penaltyMs =
     ok.length === 0 ? 1000 : Math.max(...ok.map((r) => r.medianMs)) * 2;
 
   return benchData.runners
+    .filter((r) => !r.comingSoon)
     .map(({ id: runnerId }) => {
       const result = findResult(runnerId, operationId);
       const fill = chartConfig[runnerId].color;
@@ -226,7 +228,7 @@ export const BenchChart = () => {
     >
       <div className="-mx-4 max-w-full overflow-x-auto px-4 scrollbar-hide sm:mx-0 sm:px-0">
         <TabsList
-          className="w-max gap-x-3 gap-y-0.5 border-b border-dotted bg-transparent p-0 sm:gap-x-5"
+          className="w-full gap-x-3 justify-between border-b border-dotted bg-transparent p-0"
           variant="line"
         >
           {benchData.operations.map((op) => (
