@@ -29,9 +29,10 @@ Operations measured:
 
 If a runner is missing dependencies, its results are reported as `err` to make the missing requirement obvious.
 
-> **Note on isomorphic-git**: The Linux kernel pack files exceed the maximum size `isomorphic-git` can read into a single `Buffer` (>2 GB). Most operations beyond `current-branch` will fail with a "packfile too large" error. This limitation of the pure-JS implementation is itself a benchmark result.
+> [!NOTE]
+> The `isomorphic-git` runner is limited to operations `current-branch` and `status` due to the Linux kernel pack files exceeding the maximum size it can read into a single `Buffer` (>2 GB). This limitation of the pure-JS implementation is itself a benchmark result.
 
-## Running the benchmarks
+## Running
 
 ```bash
 bun install
