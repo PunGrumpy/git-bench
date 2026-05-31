@@ -21,10 +21,15 @@ export const BenchChart = () => {
   const [operation, setOperation] = useState<OperationId>(
     benchData.operations[0]?.id ?? "status"
   );
-  const tabRefs = useRef(new Map<OperationId, HTMLButtonElement | null>());
+  const tabRefs = useRef<Map<OperationId, HTMLButtonElement | null> | null>(
+    null
+  );
+  if (tabRefs.current === null) {
+    tabRefs.current = new Map();
+  }
 
   useEffect(() => {
-    tabRefs.current.get(operation)?.scrollIntoView({
+    tabRefs.current?.get(operation)?.scrollIntoView({
       behavior: "smooth",
       block: "nearest",
       inline: "nearest",
@@ -54,7 +59,7 @@ export const BenchChart = () => {
               )}
               key={op.id}
               ref={(element) => {
-                tabRefs.current.set(op.id, element);
+                tabRefs.current?.set(op.id, element);
               }}
               value={op.id}
             >
