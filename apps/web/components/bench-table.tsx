@@ -1,6 +1,6 @@
 "use client";
 
-import { formatBenchError } from "@git-bench/bench";
+import { formatBenchError } from "@git-bench/bench/format-error";
 
 import {
   Collapsible,

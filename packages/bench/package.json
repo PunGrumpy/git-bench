@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
+    "./format-error": "./src/format-error.ts",
     "./results.json": "./results.json"
   },
   "scripts": {
