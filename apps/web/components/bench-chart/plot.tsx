@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -13,12 +12,10 @@ import {
 } from "recharts";
 import type { BarShapeProps, XAxisTickContentProps } from "recharts";
 
-import { BenchResultsTable } from "@/components/bench-table";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { benchData, findResult, chartConfig } from "@/lib/bench";
+import { benchData, chartConfig, findResult } from "@/lib/bench";
 import type { OperationId, RunnerId } from "@/lib/bench";
-import { cn, formatMs } from "@/lib/utils";
+import { formatMs } from "@/lib/utils";
 
 interface ChartEntry {
   runnerId: RunnerId;
@@ -30,58 +27,62 @@ interface ChartEntry {
   isPenalty: boolean;
 }
 
-const formatEntryMedian = (entry: ChartEntry) =>
+const formatEntryMedian = (entry: ChartEntry): string =>
   entry.isPenalty ? "err" : formatMs(entry.medianMs);
 
 const buildSeries = (operationId: OperationId): ChartEntry[] => {
-  const ok = benchData.runners
-    .filter((r) => !r.comingSoon)
-    .map(({ id }) => findResult(id, operationId))
-    .filter((r): r is NonNullable<typeof r> => !!r && !r.error);
-  const penaltyMs =
-    ok.length === 0 ? 1000 : Math.max(...ok.map((r) => r.medianMs)) * 2;
+  const activeRunners = benchData.runners.filter(
+    (runner) => !runner.comingSoon
+  );
+  const okMedians = activeRunners.flatMap((runner) => {
+    const result = findResult(runner.id, operationId);
+    return result && !result.error ? [result.medianMs] : [];
+  });
+  const penaltyMs = okMedians.length === 0 ? 1000 : Math.max(...okMedians) * 2;
 
-  return benchData.runners
-    .filter((r) => !r.comingSoon)
-    .map(({ id: runnerId }) => {
+  return activeRunners
+    .flatMap(({ id: runnerId }) => {
       const result = findResult(runnerId, operationId);
       const fill = chartConfig[runnerId].color;
 
       if (!result || result.error) {
-        return {
-          fill,
-          isPenalty: true,
-          maxMs: penaltyMs,
-          medianMs: penaltyMs,
-          minMs: penaltyMs,
-          runnerId,
-          whisker: [0, 0] as [number, number],
-        };
+        return [
+          {
+            fill,
+            isPenalty: true,
+            maxMs: penaltyMs,
+            medianMs: penaltyMs,
+            minMs: penaltyMs,
+            runnerId,
+            whisker: [0, 0] as [number, number],
+          },
+        ];
       }
 
-      return {
-        fill,
-        isPenalty: false,
-        maxMs: result.maxMs,
-        medianMs: result.medianMs,
-        minMs: result.minMs,
-        runnerId,
-        whisker: [
-          Math.max(result.medianMs - result.minMs, 0),
-          Math.max(result.maxMs - result.medianMs, 0),
-        ] as [number, number],
-      };
+      return [
+        {
+          fill,
+          isPenalty: false,
+          maxMs: result.maxMs,
+          medianMs: result.medianMs,
+          minMs: result.minMs,
+          runnerId,
+          whisker: [
+            Math.max(result.medianMs - result.minMs, 0),
+            Math.max(result.maxMs - result.medianMs, 0),
+          ] as [number, number],
+        },
+      ];
     })
     .toSorted((a, b) => a.medianMs - b.medianMs);
 };
 
-const BenchTooltip = ({
-  active,
-  payload,
-}: {
+interface BenchTooltipProps {
   active?: boolean;
   payload?: { payload: ChartEntry }[];
-}) => {
+}
+
+const BenchTooltip = ({ active, payload }: BenchTooltipProps) => {
   if (!active || !payload?.[0]) {
     return null;
   }
@@ -106,7 +107,11 @@ const BenchTooltip = ({
   );
 };
 
-const OperationChart = ({ operationId }: { operationId: OperationId }) => {
+interface OperationChartProps {
+  operationId: OperationId;
+}
+
+export const OperationChart = ({ operationId }: OperationChartProps) => {
   const data = buildSeries(operationId);
   const msValues = data.flatMap((p) => [p.medianMs, p.minMs, p.maxMs]);
 
@@ -203,74 +208,5 @@ const OperationChart = ({ operationId }: { operationId: OperationId }) => {
         </Bar>
       </BarChart>
     </ChartContainer>
-  );
-};
-
-export const BenchChart = () => {
-  const [operation, setOperation] = useState<OperationId>(
-    benchData.operations[0]?.id ?? "status"
-  );
-  const tabRefs = useRef<Map<OperationId, HTMLButtonElement | null> | null>(
-    null
-  );
-  if (tabRefs.current === null) {
-    tabRefs.current = new Map();
-  }
-
-  useEffect(() => {
-    tabRefs.current?.get(operation)?.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-      inline: "nearest",
-    });
-  }, [operation]);
-
-  return (
-    <Tabs
-      className="w-full gap-3"
-      onValueChange={(value) => setOperation(value as OperationId)}
-      value={operation}
-    >
-      <div className="-mx-4 max-w-full overflow-x-auto px-4 scrollbar-hide sm:mx-0 sm:px-0">
-        <TabsList
-          className="w-full gap-x-3 justify-between border-b border-dotted bg-transparent p-0"
-          variant="line"
-        >
-          {benchData.operations.map((op) => (
-            <TabsTrigger
-              className={cn(
-                "shrink-0 flex-none px-0 text-sm text-muted-foreground",
-                "transition-[color,opacity] duration-150 ease-(--ease-out-strong)",
-                "data-active:font-medium data-active:text-foreground",
-                "group-data-horizontal/tabs:after:bottom-[-2.5px] group-data-horizontal/tabs:after:h-0.25",
-                "group-data-horizontal/tabs:after:ease-(--ease-out-strong)",
-                "focus-visible:outline-none focus-visible:ring-0"
-              )}
-              key={op.id}
-              ref={(element) => {
-                tabRefs.current?.set(op.id, element);
-              }}
-              value={op.id}
-            >
-              {op.label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </div>
-
-      {benchData.operations.map((op) => (
-        <TabsContent className="space-y-2" key={op.id} value={op.id}>
-          <p className="text-muted-foreground text-xs italic">
-            {op.description}
-          </p>
-          <OperationChart operationId={op.id} />
-        </TabsContent>
-      ))}
-
-      <BenchResultsTable
-        activeOperation={operation}
-        onOperationChange={setOperation}
-      />
-    </Tabs>
   );
 };
