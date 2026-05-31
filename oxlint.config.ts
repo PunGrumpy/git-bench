@@ -5,7 +5,7 @@ import react from "ultracite/oxlint/react";
 
 export default defineConfig({
   extends: [core, react, next],
-  ignorePatterns: ["components/ui"],
+  ignorePatterns: ["apps/web/components/ui"],
   jsPlugins: [
     { name: "react-doctor", specifier: "oxlint-plugin-react-doctor" },
   ],
