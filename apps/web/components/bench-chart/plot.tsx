@@ -118,6 +118,7 @@ export const OperationChart = ({ operationId }: OperationChartProps) => {
   return (
     <ChartContainer
       className="aspect-5/4 w-full sm:aspect-2/1"
+      initialDimension={{ height: 150, width: 200 }}
       config={chartConfig}
     >
       <BarChart data={data} margin={{ bottom: 0, left: 0, right: 0, top: 36 }}>
