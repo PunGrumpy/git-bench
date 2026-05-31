@@ -15,12 +15,14 @@
     "check": "ultracite check",
     "fix": "ultracite fix",
     "bench:clone": "turbo run bench:clone",
-    "bench": "turbo run bench"
+    "bench": "turbo run bench",
+    "doctor": "bunx react-doctor@latest"
   },
   "devDependencies": {
     "@typescript/native-preview": "^7.0.0-dev.20260427.1",
     "oxfmt": "^0.51.0",
     "oxlint": "^1.66.0",
+    "react-doctor": "^0.2.14",
     "turbo": "^2.0.4",
     "ultracite": "7.7.0"
   },
