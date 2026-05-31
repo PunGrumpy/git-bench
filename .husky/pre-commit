@@ -1,0 +1,77 @@
+#!/bin/sh
+
+# Exit on any error
+set -e
+
+# ultracite hook start
+# Check if there are any staged files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
+if [ -z "$STAGED_FILES" ]; then
+  echo "No staged files to format"
+  exit 0
+fi
+
+# Run formatter
+bun x ultracite fix
+FORMAT_EXIT_CODE=$?
+
+# Re-stage files that were already staged
+echo "$STAGED_FILES" | while IFS= read -r file; do
+  if [ -f "$file" ]; then
+    git add -- "$file"
+  fi
+done
+
+if [ $FORMAT_EXIT_CODE -ne 0 ]; then
+  echo "Ultracite found issues that could not be auto-fixed."
+  exit $FORMAT_EXIT_CODE
+fi
+
+echo "✨ Files formatted by Ultracite"
+# ultracite hook end
+
+# react-doctor hook start
+react_doctor_scan_staged_files() {
+  if [ -x "./node_modules/.bin/react-doctor" ]; then
+    "./node_modules/.bin/react-doctor" --staged --fail-on warning
+    return
+  fi
+
+  if command -v react-doctor >/dev/null 2>&1; then
+    react-doctor --staged --fail-on warning
+    return
+  fi
+
+  if command -v bun >/dev/null 2>&1; then
+    bun x react-doctor@latest --staged --fail-on warning
+    return
+  fi
+
+  if command -v npx >/dev/null 2>&1; then
+    npx --yes react-doctor@latest --staged --fail-on warning
+    return
+  fi
+
+  printf '%s\n' "react-doctor: command not found; skipping staged scan."
+}
+
+react_doctor_output=$(mktemp "${TMPDIR:-/tmp}/react-doctor-hook.XXXXXX")
+if react_doctor_scan_staged_files > "$react_doctor_output" 2>&1; then
+  rm -f "$react_doctor_output"
+else
+  if grep -q "No React dependency found" "$react_doctor_output"; then
+    cat "$react_doctor_output" >&2
+    rm -f "$react_doctor_output"
+    printf '%s\n' "react-doctor: staged scan unavailable; skipping (CI still runs on PRs)." >&2
+  else
+    cat "$react_doctor_output" >&2
+    rm -f "$react_doctor_output"
+    printf '%s\n' "React Doctor found staged regressions." "Run react-doctor --staged --fail-on warning to inspect." "Want them fixed? Ask your agent to run that command and resolve the findings." >&2
+    exit 1
+  fi
+fi
+# react-doctor hook end
+
+bun run typecheck
+# bun run test
+bun run build --filter=web
