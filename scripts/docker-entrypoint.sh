@@ -2,21 +2,6 @@
 
 set -euo pipefail
 
-# Parse bench.config.json using bun
-if [ -f "bench.config.json" ]; then
-  echo "Parsing configuration from bench.config.json..."
-  CFG_REMOTE=$(bun -e "try { console.log(require('./bench.config.json').remote || '') } catch(e) {}")
-  CFG_REPO_DIR=$(bun -e "try { console.log(require('./bench.config.json').repoDir || '') } catch(e) {}")
-  
-  if [ -n "$CFG_REMOTE" ]; then
-    export REMOTE="$CFG_REMOTE"
-  fi
-  if [ -n "$CFG_REPO_DIR" ]; then
-    # Resolve relative to /app inside container
-    export REPO_DIR="/app/$CFG_REPO_DIR"
-  fi
-fi
-
 echo "Running clone script..."
 # Run clone-repo.sh directly using bash
 bash packages/bench/scripts/clone-repo.sh
