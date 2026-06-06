@@ -1,16 +1,9 @@
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-
+import { execInRepo } from "./exec";
 import type { OperationId, Runner, RunnerContext } from "./types";
 
 const GIX = process.env.GIX_BIN ?? "gix";
 
-const execFileAsync = promisify(execFile);
-
-const run = async (cwd: string, args: string[]): Promise<string> => {
-  const { stdout } = await execFileAsync(GIX, args, { cwd });
-  return stdout;
-};
+const run = (cwd: string, args: string[]) => execInRepo(GIX, cwd, args);
 
 export const gitoxideRunner: Runner = {
   id: "gitoxide",

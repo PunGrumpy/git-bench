@@ -1,14 +1,7 @@
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-
+import { execInRepo } from "./exec";
 import type { OperationId, Runner, RunnerContext } from "./types";
 
-const execFileAsync = promisify(execFile);
-
-const run = async (cwd: string, args: string[]): Promise<string> => {
-  const { stdout } = await execFileAsync("git", args, { cwd });
-  return stdout;
-};
+const run = (cwd: string, args: string[]) => execInRepo("git", cwd, args);
 
 export const gitCliRunner: Runner = {
   id: "git-cli",
