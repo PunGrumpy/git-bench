@@ -62,8 +62,7 @@
     {
       "id": "ziggit",
       "label": "ziggit",
-      "description": "Pure Zig implementation (Coming Soon).",
-      "comingSoon": true
+      "description": "Pure Zig implementation."
     }
   ],
   "results": [

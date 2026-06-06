@@ -11,6 +11,7 @@ export interface RunnerContext {
   readonly blobPaths: readonly string[];
   readonly gixBin?: string;
   readonly libgit2Path?: string | null;
+  readonly ziggitBin?: string;
 }
 
 export interface Runner {
