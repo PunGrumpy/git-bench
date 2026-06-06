@@ -107,6 +107,42 @@ const BenchTooltip = ({ active, payload }: BenchTooltipProps) => {
   );
 };
 
+interface XAxisTickProps extends Partial<XAxisTickContentProps> {
+  data: ChartEntry[];
+}
+
+const XAxisTick = ({ payload, x, y, data }: XAxisTickProps) => {
+  const entry = data[payload?.index ?? -1];
+  if (!entry || !Number.isFinite(Number(x)) || !Number.isFinite(Number(y))) {
+    return null;
+  }
+
+  const Icon = chartConfig[entry.runnerId].icon;
+
+  return (
+    <g transform={`translate(${Number(x)},${Number(y) + 14})`}>
+      <foreignObject
+        height={24}
+        style={{ overflow: "visible" }}
+        width={120}
+        x={-60}
+        y={-12}
+      >
+        <div className="flex items-center justify-center gap-1 text-[11px] text-muted-foreground">
+          <Icon />
+          <span className="hidden max-w-22 truncate sm:inline">
+            {chartConfig[entry.runnerId].label}
+          </span>
+        </div>
+      </foreignObject>
+    </g>
+  );
+};
+
+const BarShape = (props: BarShapeProps) => (
+  <Rectangle {...props} fill={props.payload?.fill ?? props.fill} />
+);
+
 interface OperationChartProps {
   operationId: OperationId;
 }
@@ -132,37 +168,7 @@ export const OperationChart = ({ operationId }: OperationChartProps) => {
           dataKey="runnerId"
           height={50}
           interval={0}
-          tick={({ payload, x, y }: XAxisTickContentProps) => {
-            const entry = data[payload?.index ?? -1];
-            if (
-              !entry ||
-              !Number.isFinite(Number(x)) ||
-              !Number.isFinite(Number(y))
-            ) {
-              return null;
-            }
-
-            const Icon = chartConfig[entry.runnerId].icon;
-
-            return (
-              <g transform={`translate(${Number(x)},${Number(y) + 14})`}>
-                <foreignObject
-                  height={24}
-                  style={{ overflow: "visible" }}
-                  width={120}
-                  x={-60}
-                  y={-12}
-                >
-                  <div className="flex items-center justify-center gap-1 text-[11px] text-muted-foreground">
-                    <Icon />
-                    <span className="hidden max-w-22 truncate sm:inline">
-                      {chartConfig[entry.runnerId].label}
-                    </span>
-                  </div>
-                </foreignObject>
-              </g>
-            );
-          }}
+          tick={<XAxisTick data={data} />}
           tickLine={false}
           type="category"
         />
@@ -184,9 +190,7 @@ export const OperationChart = ({ operationId }: OperationChartProps) => {
           dataKey="medianMs"
           maxBarSize={48}
           radius={[3, 3, 0, 0]}
-          shape={(props: BarShapeProps) => (
-            <Rectangle {...props} fill={props.payload?.fill ?? props.fill} />
-          )}
+          shape={BarShape}
         >
           <ErrorBar
             dataKey="whisker"
