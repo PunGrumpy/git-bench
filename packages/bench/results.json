@@ -2,6 +2,8 @@
   "lastBenchmarked": "2026-06-06",
   "repo": {
     "path": ".git-bench-repos/next.js",
+    "sha": "f4828c13e778dbe04c4a1e308ff29941536f091f",
+    "shortSha": "f4828c1",
     "url": "https://github.com/vercel/next.js"
   },
   "operations": [

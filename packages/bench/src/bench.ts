@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { performance } from "node:perf_hooks";
 
 import { sanitizeBenchError } from "./format-error";
+import { execInRepo } from "./runners/exec";
 import { gitCliRunner } from "./runners/git-cli";
 import { gitoxideRunner } from "./runners/gitoxide";
 import { isomorphicGitRunner } from "./runners/isomorphic-git";
@@ -112,6 +113,9 @@ const main = async () => {
     console.error(`Repo not found at ${REPO_DIR}. Run bun bench:clone first.`);
     process.exit(1);
   }
+  const head = await execInRepo("git", REPO_DIR, ["rev-parse", "HEAD"]);
+  const sha = head.trim();
+  const shortSha = sha.slice(0, 7);
   const ctx: RunnerContext = { blobPaths: BLOB_PATHS, repoDir: REPO_DIR };
   const results: Sample[] = [];
 
@@ -185,7 +189,12 @@ const main = async () => {
   const payload = {
     ...existing,
     lastBenchmarked: new Date().toISOString().slice(0, 10),
-    repo: { path: BENCH_REPO_RELATIVE, url: REPO_URL },
+    repo: {
+      path: BENCH_REPO_RELATIVE,
+      sha,
+      shortSha,
+      url: REPO_URL,
+    },
     results,
   };
   writeFileSync(RESULTS_PATH, `${JSON.stringify(payload, null, 2)}\n`);

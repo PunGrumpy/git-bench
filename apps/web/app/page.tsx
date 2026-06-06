@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { Results } from "@/components/sections/results";
-import { benchData, repoSlug } from "@/lib/bench";
+import { benchData, repoCommitUrl, repoSlug } from "@/lib/bench";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -92,7 +92,17 @@ const Home = () => (
         reported.
       </p>
       <p>
-        Last benchmarked: <em>{benchData.lastBenchmarked ?? "not yet run"}</em>.{" "}
+        Last benchmarked: <em>{benchData.lastBenchmarked ?? "not yet run"}</em>{" "}
+        at{" "}
+        <a
+          href={repoCommitUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
+        >
+          <code className="font-mono">{benchData.repo.shortSha}</code>
+        </a>
+        .{" "}
         <a
           href="https://github.com/PunGrumpy/git-bench#readme"
           target="_blank"
