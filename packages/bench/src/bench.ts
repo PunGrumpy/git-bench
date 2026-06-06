@@ -2,6 +2,7 @@ import { writeFileSync, existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { performance } from "node:perf_hooks";
 
+import config from "../bench.config.json";
 import { sanitizeBenchError } from "./format-error";
 import { execInRepo } from "./runners/exec";
 import { gitCliRunner } from "./runners/git-cli";
@@ -12,37 +13,8 @@ import type { OperationId, Runner, RunnerContext } from "./runners/types";
 
 const __dirname = import.meta.dirname;
 
-interface BenchConfig {
-  remote?: string;
-  repoDir?: string;
-  samples?: number;
-  gixBin?: string;
-  libgit2Path?: string | null;
-}
-
-// Load config from bench.config.json at root if exists
-const CONFIG_PATH = resolve(__dirname, "../../../bench.config.json");
-let config: BenchConfig = {};
-if (existsSync(CONFIG_PATH)) {
-  try {
-    config = JSON.parse(readFileSync(CONFIG_PATH, "utf-8")) as BenchConfig;
-  } catch (error) {
-    console.error(`Error reading config from ${CONFIG_PATH}:`, error);
-  }
-}
-
-const BENCH_REPO_RELATIVE = config.repoDir ?? ".git-bench-repos/next.js";
-const DEFAULT_REPO_URL = "https://github.com/vercel/next.js";
-const REMOTE = process.env.REMOTE ?? config.remote ?? `${DEFAULT_REPO_URL}.git`;
-const REPO_URL = REMOTE.replace(/\.git$/u, "");
-const REPO_DIR = resolve(
-  process.env.REPO_DIR ?? resolve(__dirname, `../../../${BENCH_REPO_RELATIVE}`)
-);
-const RESULTS_PATH = resolve(__dirname, "../results.json");
-const SAMPLES = Number(process.env.SAMPLES ?? config.samples ?? 5);
-
 const toBenchError = (message: string) =>
-  sanitizeBenchError(message, BENCH_REPO_RELATIVE);
+  sanitizeBenchError(message, config.git.repo);
 
 const OPERATIONS: OperationId[] = [
   "current-branch",
@@ -128,18 +100,20 @@ const stats = (samples: number[]) => {
 };
 
 const main = async () => {
-  if (!existsSync(REPO_DIR)) {
-    console.error(`Repo not found at ${REPO_DIR}. Run bun bench:clone first.`);
+  if (!existsSync(config.git.repo)) {
+    console.error(
+      `Repo not found at ${config.git.repo}. Run bun bench:clone first.`
+    );
     process.exit(1);
   }
-  const head = await execInRepo("git", REPO_DIR, ["rev-parse", "HEAD"]);
+  const head = await execInRepo("git", config.git.repo, ["rev-parse", "HEAD"]);
   const sha = head.trim();
   const shortSha = sha.slice(0, 7);
   const ctx: RunnerContext = {
     blobPaths: BLOB_PATHS,
-    gixBin: process.env.GIX_BIN ?? config.gixBin ?? "gix",
-    libgit2Path: process.env.GIT_BENCH_LIBGIT2 ?? config.libgit2Path,
-    repoDir: REPO_DIR,
+    gixBin: config.bin.gix,
+    libgit2Path: config.bin.libgit2,
+    repoDir: config.git.repo,
   };
   const results: Sample[] = [];
 
@@ -174,7 +148,7 @@ const main = async () => {
         await runner.run(op, ctx);
 
         const samples: number[] = [];
-        for (let i = 0; i < SAMPLES; i += 1) {
+        for (let i = 0; i < config.bench.samples; i += 1) {
           samples.push(
             await time(() => runner.run(op, ctx) as Promise<unknown>)
           );
@@ -209,20 +183,21 @@ const main = async () => {
     }
   }
 
-  const existing = JSON.parse(readFileSync(RESULTS_PATH, "utf-8"));
+  const resultsPath = resolve(__dirname, "..", config.bench.results);
+  const existing = JSON.parse(readFileSync(resultsPath, "utf-8"));
   const payload = {
     ...existing,
     lastBenchmarked: new Date().toISOString().slice(0, 10),
     repo: {
-      path: BENCH_REPO_RELATIVE,
+      path: config.git.repo,
       sha,
       shortSha,
-      url: REPO_URL,
+      url: config.git.remote,
     },
     results,
   };
-  writeFileSync(RESULTS_PATH, `${JSON.stringify(payload, null, 2)}\n`);
-  console.log(`\nWrote ${results.length} samples to ${RESULTS_PATH}`);
+  writeFileSync(resultsPath, `${JSON.stringify(payload, null, 2)}\n`);
+  console.log(`\nWrote ${results.length} samples to ${resultsPath}`);
 };
 
 try {

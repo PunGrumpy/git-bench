@@ -1,7 +1,0 @@
-{
-  "remote": "https://github.com/vercel/next.js.git",
-  "repoDir": ".git-bench-repos/next.js",
-  "samples": 5,
-  "gixBin": "gix",
-  "libgit2Path": null
-}
