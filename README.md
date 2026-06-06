@@ -38,29 +38,33 @@ bun run dev           # Start the dashboard at http://localhost:3000
 
 ## Configuration
 
-You can configure the benchmark using `bench.config.json` at the root of the project:
+You can configure the benchmark using `packages/bench/bench.config.json`:
 
 ```json
 {
-  "remote": "https://github.com/vercel/next.js.git",
-  "repoDir": ".git-bench-repos/next.js",
-  "samples": 5,
-  "gixBin": "gix",
-  "libgit2Path": null
+  "git": {
+    "remote": "https://github.com/vercel/next.js.git",
+    "repo": ".git-bench-repos/next.js"
+  },
+  "bench": {
+    "samples": 5,
+    "results": "results.json"
+  },
+  "bin": {
+    "gix": "gix",
+    "libgit2": null
+  }
 }
 ```
 
-Environment overrides can still be passed to customize the execution on the fly:
-
-- `REMOTE`: Clone URL.
-- `REPO_DIR`: Path to the cloned repository.
-- `SAMPLES`: Samples per operation.
-
-Example:
-
-```bash
-SAMPLES=3 REMOTE=https://github.com/another/repo.git bun run bench
-```
+| Key             | Description                                                  |
+| --------------- | ------------------------------------------------------------ |
+| `git.remote`    | Clone URL for the repository to benchmark                    |
+| `git.repo`      | Local path (relative to project root) for the cloned repo    |
+| `bench.samples` | Number of timed iterations per operation                     |
+| `bench.results` | Output path for results JSON (relative to `packages/bench/`) |
+| `bin.gix`       | Path to the `gix` (gitoxide) binary                          |
+| `bin.libgit2`   | Path to the `libgit2` shared library, or `null` to skip      |
 
 ## Methodology
 
