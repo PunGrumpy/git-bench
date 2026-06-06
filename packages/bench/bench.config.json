@@ -1,0 +1,14 @@
+{
+  "git": {
+    "remote": "https://github.com/vercel/next.js.git",
+    "repo": ".git-bench-repos/next.js"
+  },
+  "bench": {
+    "samples": 5,
+    "results": "results.json"
+  },
+  "bin": {
+    "gix": "gix",
+    "libgit2": null
+  }
+}

@@ -3,11 +3,10 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BENCH_REPO_RELATIVE=".git-bench-repos/next.js"
-DEFAULT_REMOTE="https://github.com/vercel/next.js.git"
+CONFIG="$SCRIPT_DIR/../bench.config.json"
 
-REPO_DIR="${REPO_DIR:-$SCRIPT_DIR/../../../$BENCH_REPO_RELATIVE}"
-REMOTE="${REMOTE:-$DEFAULT_REMOTE}"
+REMOTE=$(bun -e "console.log(require('$CONFIG').git.remote)")
+REPO_DIR="$SCRIPT_DIR/../../../$(bun -e "console.log(require('$CONFIG').git.repo)")"
 
 if [ -d "$REPO_DIR/.git" ]; then
   echo "Repo already exists at $REPO_DIR — fetching latest."

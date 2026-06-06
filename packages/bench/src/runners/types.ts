@@ -9,6 +9,8 @@ export type OperationId =
 export interface RunnerContext {
   readonly repoDir: string;
   readonly blobPaths: readonly string[];
+  readonly gixBin?: string;
+  readonly libgit2Path?: string | null;
 }
 
 export interface Runner {

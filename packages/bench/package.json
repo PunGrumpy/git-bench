@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./config": "./bench.config.json",
     "./format-error": "./src/format-error.ts",
     "./results.json": "./results.json"
   },

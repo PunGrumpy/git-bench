@@ -14,8 +14,8 @@
     "typecheck": "turbo run typecheck",
     "check": "ultracite check",
     "fix": "ultracite fix",
-    "bench:clone": "turbo run bench:clone",
-    "bench": "turbo run bench",
+    "bench": "bash scripts/docker-bench.sh",
+    "bench:build": "docker build -t git-bench .",
     "doctor": "bunx react-doctor@latest",
     "prepare": "husky"
   },
