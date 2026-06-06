@@ -1,5 +1,5 @@
 # Stage 1: Build the base environment with all system tools
-FROM debian:bookworm-slim AS base-env
+FROM debian:bookworm-slim AS base
 
 # Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -30,7 +30,7 @@ ENV PATH="/root/.bun/bin:${PATH}"
 WORKDIR /app
 
 # Stage 2: Install dependencies
-FROM base-env AS deps
+FROM base AS deps
 
 # Copy workspaces configuration and package locks
 COPY package.json bun.lock ./
