@@ -1,4 +1,5 @@
 {
+  "$schema": "https://git-benchmark.vercel.app/schema.json",
   "git": {
     "remote": "https://github.com/vercel/next.js.git",
     "repo": ".git-bench-repos/next.js"
