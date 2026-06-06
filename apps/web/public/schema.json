@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "git": {
+      "type": "object",
+      "properties": {
+        "remote": {
+          "type": "string"
+        },
+        "repo": {
+          "type": "string"
+        }
+      },
+      "required": ["remote", "repo"]
+    },
+    "bench": {
+      "type": "object",
+      "properties": {
+        "samples": {
+          "type": "integer"
+        },
+        "results": {
+          "type": "string"
+        }
+      },
+      "required": ["samples", "results"]
+    },
+    "bin": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}
