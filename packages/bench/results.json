@@ -70,218 +70,218 @@
     {
       "operation": "current-branch",
       "runner": "git-cli",
-      "maxMs": 2.587177000000011,
-      "meanMs": 1.656737000000001,
-      "medianMs": 1.5506390000000039,
-      "minMs": 1.2491319999999888,
-      "samples": 5
+      "maxMs": 1.0155899999999995,
+      "meanMs": 1.0155899999999995,
+      "medianMs": 1.0155899999999995,
+      "minMs": 1.0155899999999995,
+      "samples": 1
     },
     {
       "operation": "status",
       "runner": "git-cli",
-      "maxMs": 131.80152899999996,
-      "meanMs": 128.75963299999998,
-      "medianMs": 128.53380500000003,
-      "minMs": 126.43838899999992,
-      "samples": 5
+      "maxMs": 146.30830700000024,
+      "meanMs": 146.30830700000024,
+      "medianMs": 146.30830700000024,
+      "minMs": 146.30830700000024,
+      "samples": 1
     },
     {
       "operation": "log-100",
       "runner": "git-cli",
-      "maxMs": 5.443183999999974,
-      "meanMs": 4.3132395999999975,
-      "medianMs": 4.519733999999971,
-      "minMs": 3.2133029999999962,
-      "samples": 5
+      "maxMs": 4.452631999999994,
+      "meanMs": 4.452631999999994,
+      "medianMs": 4.452631999999994,
+      "minMs": 4.452631999999994,
+      "samples": 1
     },
     {
       "operation": "tracked-files",
       "runner": "git-cli",
-      "maxMs": 15.454070000000002,
-      "meanMs": 11.799436400000014,
-      "medianMs": 11.058187000000089,
-      "minMs": 9.40919699999995,
-      "samples": 5
+      "maxMs": 10.73156999999992,
+      "meanMs": 10.73156999999992,
+      "medianMs": 10.73156999999992,
+      "minMs": 10.73156999999992,
+      "samples": 1
     },
     {
       "operation": "changed-files",
       "runner": "git-cli",
-      "maxMs": 3.2451360000000022,
-      "meanMs": 2.373418200000015,
-      "medianMs": 2.3037540000000263,
-      "minMs": 1.6188119999999344,
-      "samples": 5
+      "maxMs": 1.8702210000001287,
+      "meanMs": 1.8702210000001287,
+      "medianMs": 1.8702210000001287,
+      "minMs": 1.8702210000001287,
+      "samples": 1
     },
     {
       "operation": "read-25-blobs",
       "runner": "git-cli",
-      "maxMs": 38.940450000000055,
-      "meanMs": 37.81210299999998,
-      "medianMs": 38.26771099999996,
-      "minMs": 35.05476199999998,
-      "samples": 5
+      "maxMs": 45.92535799999996,
+      "meanMs": 45.92535799999996,
+      "medianMs": 45.92535799999996,
+      "minMs": 45.92535799999996,
+      "samples": 1
     },
     {
       "operation": "current-branch",
       "runner": "libgit2-ffi",
-      "maxMs": 0.025092999999969834,
-      "meanMs": 0.015396200000031968,
-      "medianMs": 0.010683000000199172,
-      "minMs": 0.007437999999865497,
-      "samples": 5
+      "maxMs": 0.018658999999843218,
+      "meanMs": 0.018658999999843218,
+      "medianMs": 0.018658999999843218,
+      "minMs": 0.018658999999843218,
+      "samples": 1
     },
     {
       "operation": "status",
       "runner": "libgit2-ffi",
-      "maxMs": 193.31643500000018,
-      "meanMs": 188.40195999999997,
-      "medianMs": 187.46066900000005,
-      "minMs": 185.9948959999997,
-      "samples": 5
+      "maxMs": 219.98241099999996,
+      "meanMs": 219.98241099999996,
+      "medianMs": 219.98241099999996,
+      "minMs": 219.98241099999996,
+      "samples": 1
     },
     {
       "operation": "log-100",
       "runner": "libgit2-ffi",
-      "maxMs": 0.5506410000002688,
-      "meanMs": 0.302932200000123,
-      "medianMs": 0.2782600000000457,
-      "minMs": 0.19960300000002462,
-      "samples": 5
+      "maxMs": 0.47200199999997494,
+      "meanMs": 0.47200199999997494,
+      "medianMs": 0.47200199999997494,
+      "minMs": 0.47200199999997494,
+      "samples": 1
     },
     {
       "operation": "tracked-files",
       "runner": "libgit2-ffi",
-      "maxMs": 3.6164269999999306,
-      "meanMs": 2.663667600000008,
-      "medianMs": 2.3727969999999914,
-      "minMs": 2.2229080000001886,
-      "samples": 5
+      "maxMs": 2.0471630000001824,
+      "meanMs": 2.0471630000001824,
+      "medianMs": 2.0471630000001824,
+      "minMs": 2.0471630000001824,
+      "samples": 1
     },
     {
       "operation": "changed-files",
       "runner": "libgit2-ffi",
-      "maxMs": 10.122419999999693,
-      "meanMs": 8.220776599999862,
-      "medianMs": 7.691183999999794,
-      "minMs": 7.340857000000142,
-      "samples": 5
+      "maxMs": 8.331682999999884,
+      "meanMs": 8.331682999999884,
+      "medianMs": 8.331682999999884,
+      "minMs": 8.331682999999884,
+      "samples": 1
     },
     {
       "operation": "read-25-blobs",
       "runner": "libgit2-ffi",
-      "maxMs": 8.594865000000027,
-      "meanMs": 7.151535400000012,
-      "medianMs": 7.104217000000062,
-      "minMs": 6.069796000000224,
-      "samples": 5
+      "maxMs": 7.814926999999898,
+      "meanMs": 7.814926999999898,
+      "medianMs": 7.814926999999898,
+      "minMs": 7.814926999999898,
+      "samples": 1
     },
     {
       "operation": "current-branch",
       "runner": "gitoxide",
-      "maxMs": 5.7329429999999775,
-      "meanMs": 5.057954000000064,
-      "medianMs": 4.80727700000034,
-      "minMs": 4.67989099999977,
-      "samples": 5
+      "maxMs": 5.430088000000069,
+      "meanMs": 5.430088000000069,
+      "medianMs": 5.430088000000069,
+      "minMs": 5.430088000000069,
+      "samples": 1
     },
     {
       "operation": "status",
       "runner": "gitoxide",
-      "maxMs": 123.33861100000013,
-      "meanMs": 117.18682719999997,
-      "medianMs": 116.46154999999999,
-      "minMs": 114.01530300000013,
-      "samples": 5
+      "maxMs": 135.22258199999987,
+      "meanMs": 135.22258199999987,
+      "medianMs": 135.22258199999987,
+      "minMs": 135.22258199999987,
+      "samples": 1
     },
     {
       "operation": "log-100",
       "runner": "gitoxide",
-      "maxMs": 10.337657000000036,
-      "meanMs": 8.377291800000057,
-      "medianMs": 8.074163000000226,
-      "minMs": 7.5635990000000675,
-      "samples": 5
+      "maxMs": 7.814612000000125,
+      "meanMs": 7.814612000000125,
+      "medianMs": 7.814612000000125,
+      "minMs": 7.814612000000125,
+      "samples": 1
     },
     {
       "operation": "tracked-files",
       "runner": "gitoxide",
-      "maxMs": 124.46706100000029,
-      "meanMs": 122.17064540000001,
-      "medianMs": 121.28571800000009,
-      "minMs": 120.77997199999936,
-      "samples": 5
+      "maxMs": 135.501663,
+      "meanMs": 135.501663,
+      "medianMs": 135.501663,
+      "minMs": 135.501663,
+      "samples": 1
     },
     {
       "operation": "changed-files",
       "runner": "gitoxide",
-      "maxMs": 21.438883999999234,
-      "meanMs": 19.987314199999854,
-      "medianMs": 20.412616999999955,
-      "minMs": 18.521340999999666,
-      "samples": 5
+      "maxMs": 21.93190400000003,
+      "meanMs": 21.93190400000003,
+      "medianMs": 21.93190400000003,
+      "minMs": 21.93190400000003,
+      "samples": 1
     },
     {
       "operation": "read-25-blobs",
       "runner": "gitoxide",
-      "maxMs": 108.37090400000034,
-      "meanMs": 100.81553480000021,
-      "medianMs": 97.7003650000006,
-      "minMs": 97.29209600000013,
-      "samples": 5
+      "maxMs": 178.677909,
+      "meanMs": 178.677909,
+      "medianMs": 178.677909,
+      "minMs": 178.677909,
+      "samples": 1
     },
     {
       "operation": "current-branch",
       "runner": "isomorphic-git",
-      "maxMs": 4.554838000000018,
-      "meanMs": 2.8331018000002586,
-      "medianMs": 2.5290560000003097,
-      "minMs": 1.9012870000005933,
-      "samples": 5
+      "maxMs": 4.964977999999974,
+      "meanMs": 4.964977999999974,
+      "medianMs": 4.964977999999974,
+      "minMs": 4.964977999999974,
+      "samples": 1
     },
     {
       "operation": "status",
       "runner": "isomorphic-git",
-      "maxMs": 10997.870914,
-      "meanMs": 7829.4594812,
-      "medianMs": 7542.930074,
-      "minMs": 6213.149104999997,
-      "samples": 5
+      "maxMs": 11368.338515,
+      "meanMs": 11368.338515,
+      "medianMs": 11368.338515,
+      "minMs": 11368.338515,
+      "samples": 1
     },
     {
       "operation": "log-100",
       "runner": "isomorphic-git",
-      "maxMs": 4147.296368999996,
-      "meanMs": 3382.699290800003,
-      "medianMs": 3054.3020490000054,
-      "minMs": 2837.677230000001,
-      "samples": 5
+      "maxMs": 3452.3208559999985,
+      "meanMs": 3452.3208559999985,
+      "medianMs": 3452.3208559999985,
+      "minMs": 3452.3208559999985,
+      "samples": 1
     },
     {
       "operation": "tracked-files",
       "runner": "isomorphic-git",
-      "maxMs": 4700.540664,
-      "meanMs": 4218.732359799998,
-      "medianMs": 4104.096012999988,
-      "minMs": 3939.3156670000026,
-      "samples": 5
+      "maxMs": 3615.1383389999974,
+      "meanMs": 3615.1383389999974,
+      "medianMs": 3615.1383389999974,
+      "minMs": 3615.1383389999974,
+      "samples": 1
     },
     {
       "operation": "changed-files",
       "runner": "isomorphic-git",
-      "maxMs": 8846.211002000011,
-      "meanMs": 7738.214217600008,
-      "medianMs": 7722.304307000013,
-      "minMs": 6415.406460000013,
-      "samples": 5
+      "maxMs": 8148.596485000002,
+      "meanMs": 8148.596485000002,
+      "medianMs": 8148.596485000002,
+      "minMs": 8148.596485000002,
+      "samples": 1
     },
     {
       "operation": "read-25-blobs",
       "runner": "isomorphic-git",
-      "maxMs": 75638.60052200005,
-      "meanMs": 67261.810433,
-      "medianMs": 66245.39063599997,
-      "minMs": 62804.075511,
-      "samples": 5
+      "maxMs": 74399.295702,
+      "meanMs": 74399.295702,
+      "medianMs": 74399.295702,
+      "minMs": 74399.295702,
+      "samples": 1
     }
   ]
 }
