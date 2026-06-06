@@ -2,6 +2,8 @@ import type { SVGProps } from "react";
 
 import { Badge } from "@/components/ui/badge";
 
+import { ThemeSwitcher } from "./theme-switcher";
+
 export const GitHubIcon = ({
   className,
   ...props
@@ -22,23 +24,26 @@ export const GitHubIcon = ({
 export const Header = () => (
   <div className="flex items-center justify-between">
     <h1 className="flex items-center gap-2 font-semibold text-lg">Git Bench</h1>
-    <a
-      className="text-muted-foreground transition-colors hover:text-foreground"
-      href="https://github.com/PunGrumpy/git-bench"
-      rel="noreferrer"
-      target="_blank"
-      aria-label="PunGrumpy/git-bench on GitHub"
-    >
-      <span className="flex size-9 items-center justify-center rounded-full border border-dotted hover:bg-sidebar transition-colors sm:hidden">
-        <GitHubIcon className="size-4" />
-      </span>
-      <Badge
-        variant="outline"
-        className="hidden sm:inline-flex h-auto py-2 px-4 bg-transparent hover:bg-sidebar transition-colors border-dotted"
+    <div className="flex items-center gap-2">
+      <ThemeSwitcher />
+      <a
+        className="text-muted-foreground transition-colors hover:text-foreground"
+        href="https://github.com/PunGrumpy/git-bench"
+        rel="noreferrer"
+        target="_blank"
+        aria-label="PunGrumpy/git-bench on GitHub"
       >
-        <GitHubIcon className="size-3.5" />
-        PunGrumpy/git-bench
-      </Badge>
-    </a>
+        <span className="flex size-9 items-center justify-center rounded-full border border-dotted hover:bg-sidebar transition-colors sm:hidden">
+          <GitHubIcon className="size-4" />
+        </span>
+        <Badge
+          variant="outline"
+          className="hidden sm:inline-flex h-auto py-2 px-4 bg-transparent hover:bg-sidebar transition-colors border-dotted"
+        >
+          <GitHubIcon className="size-3.5" />
+          PunGrumpy/git-bench
+        </Badge>
+      </a>
+    </div>
   </div>
 );
