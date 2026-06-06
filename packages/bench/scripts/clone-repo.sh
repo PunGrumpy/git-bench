@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# Clone torvalds/linux for git-bench. Full clone, ~5 GB.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DEFAULT_REPO_DIR="$SCRIPT_DIR/../../../.git-bench-repos/linux"
+BENCH_REPO_RELATIVE=".git-bench-repos/next.js"
+DEFAULT_REMOTE="https://github.com/vercel/next.js.git"
 
-REPO_DIR="${REPO_DIR:-$DEFAULT_REPO_DIR}"
-REMOTE="${REMOTE:-https://github.com/torvalds/linux.git}"
+REPO_DIR="${REPO_DIR:-$SCRIPT_DIR/../../../$BENCH_REPO_RELATIVE}"
+REMOTE="${REMOTE:-$DEFAULT_REMOTE}"
 
 if [ -d "$REPO_DIR/.git" ]; then
   echo "Repo already exists at $REPO_DIR — fetching latest."
@@ -18,4 +18,6 @@ fi
 mkdir -p "$(dirname "$REPO_DIR")"
 echo "Cloning $REMOTE into $REPO_DIR (this will take a while)..."
 git clone "$REMOTE" "$REPO_DIR"
+echo "Repacking into sub-2 GB packs..."
+git -C "$REPO_DIR" repack -a -d --max-pack-size=1800m
 echo "Done."

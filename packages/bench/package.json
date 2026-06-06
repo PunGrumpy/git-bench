@@ -9,7 +9,7 @@
   },
   "scripts": {
     "bench": "bun run src/bench.ts",
-    "bench:clone": "bash scripts/clone-linux.sh",
+    "bench:clone": "bash scripts/clone-repo.sh",
     "typecheck": "tsgo --noEmit"
   },
   "dependencies": {

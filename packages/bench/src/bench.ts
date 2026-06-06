@@ -9,18 +9,20 @@ import { isomorphicGitRunner } from "./runners/isomorphic-git";
 import { libgit2FfiRunner } from "./runners/libgit2-ffi";
 import type { OperationId, Runner, RunnerContext } from "./runners/types";
 
-const __filename = import.meta.filename;
 const __dirname = import.meta.dirname;
 
+const BENCH_REPO_RELATIVE = ".git-bench-repos/next.js";
+const DEFAULT_REPO_URL = "https://github.com/vercel/next.js";
+const REMOTE = process.env.REMOTE ?? `${DEFAULT_REPO_URL}.git`;
+const REPO_URL = REMOTE.replace(/\.git$/u, "");
 const REPO_DIR = resolve(
-  process.env.REPO_DIR ?? resolve(__dirname, "../../../.git-bench-repos/linux")
+  process.env.REPO_DIR ?? resolve(__dirname, `../../../${BENCH_REPO_RELATIVE}`)
 );
-const REPO_RELATIVE_PATH = ".git-bench-repos/linux";
 const RESULTS_PATH = resolve(__dirname, "../results.json");
 const SAMPLES = Number(process.env.SAMPLES ?? 5);
 
 const toBenchError = (message: string) =>
-  sanitizeBenchError(message, REPO_RELATIVE_PATH);
+  sanitizeBenchError(message, BENCH_REPO_RELATIVE);
 
 const OPERATIONS: OperationId[] = [
   "current-branch",
@@ -38,33 +40,32 @@ const RUNNERS: Runner[] = [
   isomorphicGitRunner,
 ];
 
-// 25 well-known paths in the linux kernel — stable across recent history.
 const BLOB_PATHS: string[] = [
-  "MAINTAINERS",
-  "README",
-  "COPYING",
-  "Makefile",
-  "Kbuild",
-  "Kconfig",
-  "CREDITS",
+  "package.json",
+  "pnpm-lock.yaml",
+  "turbo.json",
+  "readme.md",
+  "license.md",
   ".gitignore",
-  "init/main.c",
-  "init/Kconfig",
-  "init/version.c",
-  "kernel/sched/core.c",
-  "kernel/fork.c",
-  "kernel/exit.c",
-  "kernel/cpu.c",
-  "mm/memory.c",
-  "mm/mmap.c",
-  "mm/slub.c",
-  "fs/namei.c",
-  "fs/open.c",
-  "fs/read_write.c",
-  "net/socket.c",
-  "net/core/dev.c",
-  "drivers/char/mem.c",
-  "include/linux/sched.h",
+  "contributing.md",
+  "packages/next/package.json",
+  "packages/next/license.md",
+  "packages/next/README.md",
+  "packages/next/src/server/next.ts",
+  "packages/next/src/client/index.tsx",
+  "packages/next/src/build/index.ts",
+  "packages/next/src/export/index.ts",
+  "packages/next/src/lib/constants.ts",
+  "packages/next/src/shared/lib/router/router.ts",
+  "packages/next/src/compiled/react/package.json",
+  "packages/eslint-plugin-next/package.json",
+  "packages/eslint-plugin-next/src/index.ts",
+  "test/e2e/app-dir/app/app/(rootonly)/dashboard/hello/page.js",
+  "test/production/500-page/app-router-only/app/page.tsx",
+  "examples/hello-world/package.json",
+  "examples/hello-world/app/page.tsx",
+  "bench/heavy-npm-deps/package.json",
+  "packages/font/package.json",
 ];
 
 interface Sample {
@@ -184,6 +185,7 @@ const main = async () => {
   const payload = {
     ...existing,
     lastBenchmarked: new Date().toISOString().slice(0, 10),
+    repo: { path: BENCH_REPO_RELATIVE, url: REPO_URL },
     results,
   };
   writeFileSync(RESULTS_PATH, `${JSON.stringify(payload, null, 2)}\n`);
