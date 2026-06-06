@@ -56,6 +56,8 @@ export interface BenchData {
 
 export const benchData = results as BenchData;
 
+export const repoSlug = benchData.repo.url.replace("https://github.com/", "");
+
 export const BASELINE_RUNNER = "git-cli" as const satisfies RunnerId;
 
 export const CHANGE_THRESHOLD_PERCENT = 0.5;
