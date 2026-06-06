@@ -61,7 +61,7 @@ const outPtr = () => new BigUint64Array(1);
 
 export const libgit2FfiRunner: Runner = {
   id: "libgit2-ffi",
-  label: "node:ffi + libgit2",
+  label: "bun:ffi + libgit2",
   run(op: OperationId, ctx: RunnerContext): Promise<unknown> {
     const result = (() => {
       switch (op) {
