@@ -1,0 +1,8 @@
+node_modules
+.next
+.turbo
+.git
+.git-bench-repos
+apps/web/.next
+packages/bench/tsconfig.tsbuildinfo
+apps/web/tsconfig.tsbuildinfo
