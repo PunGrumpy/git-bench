@@ -58,7 +58,7 @@ const Home = () => (
         >
           gitoxide
         </a>
-        , and{" "}
+        ,{" "}
         <a
           href="https://isomorphic-git.org"
           target="_blank"
@@ -66,8 +66,8 @@ const Home = () => (
           className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
         >
           isomorphic-git
-        </a>{" "}
-        (with{" "}
+        </a>
+        , and{" "}
         <a
           href="https://github.com/hdresearch/ziggit"
           target="_blank"
@@ -75,8 +75,8 @@ const Home = () => (
           className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
         >
           ziggit
-        </a>{" "}
-        coming soon).
+        </a>
+        .
       </p>
       <p>
         The target is a full clone of{" "}
