@@ -12,7 +12,7 @@ export const Results = () => {
           <code className="rounded border border-border bg-muted px-1 py-0.5 font-mono">
             bun run bench
           </code>{" "}
-          after cloning the linux repo to populate the chart.
+          after cloning the benchmark repo to populate the chart.
         </p>
       </div>
     );

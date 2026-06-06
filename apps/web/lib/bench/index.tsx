@@ -48,13 +48,22 @@ export interface BenchResult {
 
 export interface BenchData {
   readonly lastBenchmarked: string | null;
-  readonly repo: { readonly url: string; readonly path: string };
+  readonly repo: {
+    readonly url: string;
+    readonly path: string;
+    readonly sha: string;
+    readonly shortSha: string;
+  };
   readonly operations: readonly BenchOperation[];
   readonly runners: readonly BenchRunner[];
   readonly results: readonly BenchResult[];
 }
 
 export const benchData = results as BenchData;
+
+export const repoSlug = benchData.repo.url.replace("https://github.com/", "");
+
+export const repoCommitUrl = `${benchData.repo.url}/commit/${benchData.repo.sha}`;
 
 export const BASELINE_RUNNER = "git-cli" as const satisfies RunnerId;
 
