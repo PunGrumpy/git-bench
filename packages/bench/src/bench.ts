@@ -12,15 +12,34 @@ import type { OperationId, Runner, RunnerContext } from "./runners/types";
 
 const __dirname = import.meta.dirname;
 
-const BENCH_REPO_RELATIVE = ".git-bench-repos/next.js";
+interface BenchConfig {
+  remote?: string;
+  repoDir?: string;
+  samples?: number;
+  gixBin?: string;
+  libgit2Path?: string | null;
+}
+
+// Load config from bench.config.json at root if exists
+const CONFIG_PATH = resolve(__dirname, "../../../bench.config.json");
+let config: BenchConfig = {};
+if (existsSync(CONFIG_PATH)) {
+  try {
+    config = JSON.parse(readFileSync(CONFIG_PATH, "utf-8")) as BenchConfig;
+  } catch (error) {
+    console.error(`Error reading config from ${CONFIG_PATH}:`, error);
+  }
+}
+
+const BENCH_REPO_RELATIVE = config.repoDir ?? ".git-bench-repos/next.js";
 const DEFAULT_REPO_URL = "https://github.com/vercel/next.js";
-const REMOTE = process.env.REMOTE ?? `${DEFAULT_REPO_URL}.git`;
+const REMOTE = process.env.REMOTE ?? config.remote ?? `${DEFAULT_REPO_URL}.git`;
 const REPO_URL = REMOTE.replace(/\.git$/u, "");
 const REPO_DIR = resolve(
   process.env.REPO_DIR ?? resolve(__dirname, `../../../${BENCH_REPO_RELATIVE}`)
 );
 const RESULTS_PATH = resolve(__dirname, "../results.json");
-const SAMPLES = Number(process.env.SAMPLES ?? 5);
+const SAMPLES = Number(process.env.SAMPLES ?? config.samples ?? 5);
 
 const toBenchError = (message: string) =>
   sanitizeBenchError(message, BENCH_REPO_RELATIVE);
@@ -116,7 +135,12 @@ const main = async () => {
   const head = await execInRepo("git", REPO_DIR, ["rev-parse", "HEAD"]);
   const sha = head.trim();
   const shortSha = sha.slice(0, 7);
-  const ctx: RunnerContext = { blobPaths: BLOB_PATHS, repoDir: REPO_DIR };
+  const ctx: RunnerContext = {
+    blobPaths: BLOB_PATHS,
+    gixBin: process.env.GIX_BIN ?? config.gixBin ?? "gix",
+    libgit2Path: process.env.GIT_BENCH_LIBGIT2 ?? config.libgit2Path,
+    repoDir: REPO_DIR,
+  };
   const results: Sample[] = [];
 
   for (const runner of RUNNERS) {

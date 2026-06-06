@@ -35,9 +35,12 @@ const GIT_ITEROVER = -31;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let signatures: any;
 
-const loadLib = () => {
+const loadLib = (explicitPath?: string | null) => {
   const errors: string[] = [];
-  for (const candidate of LIB_CANDIDATES) {
+  const candidates = [explicitPath, ...LIB_CANDIDATES].filter(
+    Boolean
+  ) as string[];
+  for (const candidate of candidates) {
     try {
       return bunFfi.dlopen(candidate, signatures);
     } catch (error) {
@@ -260,7 +263,7 @@ export const libgit2FfiRunner: Runner = {
       git_tree_free: { args: [FFIType.ptr], returns: FFIType.void },
     };
 
-    lib = loadLib();
+    lib = loadLib(ctx.libgit2Path);
     ({ symbols } = lib);
 
     // git_libgit2_init returns the number of init calls (>=1 on success).
