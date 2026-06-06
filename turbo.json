@@ -17,12 +17,6 @@
     },
     "typecheck": {
       "dependsOn": ["^typecheck"]
-    },
-    "bench": {
-      "outputs": ["results.json"]
-    },
-    "bench:clone": {
-      "cache": false
     }
   }
 }
