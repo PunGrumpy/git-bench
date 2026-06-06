@@ -23,31 +23,44 @@ Operations measured:
 
 ## Prerequisites
 
-- `git` on `PATH` (used by the `git-cli` runner and the clone script).
-- `gix` on `PATH` for the `gitoxide` runner (install via `cargo install gitoxide`).
-- `libgit2` shared library installed system-wide for the `libgit2-ffi` runner (e.g., `apt install libgit2-dev` or `brew install libgit2`). Set `GIT_BENCH_LIBGIT2=/path/to/libgit2.so` if auto-detection fails.
+- **Docker** installed and running on your system.
+- **Bun** installed locally (for running the web dashboard).
 
-If a runner is missing dependencies, its results are reported as `err` to make the missing requirement obvious.
-
-> [!NOTE]
-> `bench:clone` repacks into sub-2 GB packfiles so `isomorphic-git` can read the index (it does not support Git's 64-bit pack index format).
+No local installation of `git`, `gix` (gitoxide), or `libgit2` is required; all benchmark runners are executed inside a Docker container.
 
 ## Running
 
 ```bash
 bun install
-bun run bench:clone   # Clone vercel/next.js
-bun run bench         # Run benchmarks and write to packages/bench/results.json
+bun run bench         # Build Docker image, clone repo, run benchmarks (all inside Docker)
 bun run dev           # Start the dashboard at http://localhost:3000
 ```
 
-Environment overrides:
+## Configuration
 
-- `REMOTE`: Clone URL (defaults to `https://github.com/vercel/next.js.git`).
-- `REPO_DIR`: Path to the cloned repository (defaults to `.git-bench-repos/next.js`).
-- `SAMPLES`: Samples per operation (defaults to `5`).
-- `GIX_BIN`: `gix` executable path (defaults to `gix` on `PATH`).
-- `GIT_BENCH_LIBGIT2`: Explicit path to `libgit2.so` for the FFI runner.
+You can configure the benchmark using `bench.config.json` at the root of the project:
+
+```json
+{
+  "remote": "https://github.com/vercel/next.js.git",
+  "repoDir": ".git-bench-repos/next.js",
+  "samples": 5,
+  "gixBin": "gix",
+  "libgit2Path": null
+}
+```
+
+Environment overrides can still be passed to customize the execution on the fly:
+
+- `REMOTE`: Clone URL.
+- `REPO_DIR`: Path to the cloned repository.
+- `SAMPLES`: Samples per operation.
+
+Example:
+
+```bash
+SAMPLES=3 REMOTE=https://github.com/another/repo.git bun run bench
+```
 
 ## Methodology
 
