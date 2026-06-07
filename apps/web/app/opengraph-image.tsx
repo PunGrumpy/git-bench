@@ -115,7 +115,7 @@ const OpenGraphImage = async () => {
             letterSpacing: "-0.03em",
           }}
         >
-          Four git clients. One real repo.
+          Five git clients. One real repo.
         </span>
         <span
           style={{
