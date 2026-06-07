@@ -10,7 +10,7 @@ Benchmarks git client implementations against a clone of [`vercel/next.js`](http
 | `libgit2-ffi`    | `bun:ffi` bindings to system `libgit2` |
 | `gitoxide`       | `gix` CLI (Rust)                       |
 | `isomorphic-git` | Pure JS over `node:fs`                 |
-| `ziggit`         | Pure Zig implementation (Coming Soon)  |
+| `ziggit`         | Pure Zig implementation                |
 
 Operations measured:
 
@@ -52,7 +52,8 @@ You can configure the benchmark using `packages/bench/bench.config.json`:
   },
   "bin": {
     "gix": "gix",
-    "libgit2": null
+    "libgit2": null,
+    "ziggit": "ziggit"
   }
 }
 ```
@@ -65,6 +66,7 @@ You can configure the benchmark using `packages/bench/bench.config.json`:
 | `bench.results` | Output path for results JSON (relative to `packages/bench/`) |
 | `bin.gix`       | Path to the `gix` (gitoxide) binary                          |
 | `bin.libgit2`   | Path to the `libgit2` shared library, or `null` to skip      |
+| `bin.ziggit`    | Path to the `ziggit` binary                                  |
 
 ## Methodology
 

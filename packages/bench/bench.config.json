@@ -10,6 +10,7 @@
   },
   "bin": {
     "gix": "gix",
-    "libgit2": null
+    "libgit2": null,
+    "ziggit": "ziggit"
   }
 }

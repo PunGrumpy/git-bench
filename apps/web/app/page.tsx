@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { Results } from "@/components/sections/results";
-import { benchData, repoCommitUrl, repoSlug } from "@/lib/bench";
+import { benchData } from "@/lib/bench";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -58,7 +58,7 @@ const Home = () => (
         >
           gitoxide
         </a>
-        , and{" "}
+        ,{" "}
         <a
           href="https://isomorphic-git.org"
           target="_blank"
@@ -66,8 +66,8 @@ const Home = () => (
           className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
         >
           isomorphic-git
-        </a>{" "}
-        (with{" "}
+        </a>
+        , and{" "}
         <a
           href="https://github.com/hdresearch/ziggit"
           target="_blank"
@@ -75,8 +75,8 @@ const Home = () => (
           className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
         >
           ziggit
-        </a>{" "}
-        coming soon).
+        </a>
+        .
       </p>
       <p>
         The target is a full clone of{" "}
@@ -86,7 +86,9 @@ const Home = () => (
           rel="noopener noreferrer"
           className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
         >
-          {repoSlug}
+          {benchData.repo.url
+            .replace(".git", "")
+            .replace("https://github.com/", "")}
         </a>
         . Each operation is timed across multiple samples; the median is
         reported.
@@ -95,7 +97,7 @@ const Home = () => (
         Last benchmarked: <em>{benchData.lastBenchmarked ?? "not yet run"}</em>{" "}
         at{" "}
         <a
-          href={repoCommitUrl}
+          href={`${benchData.repo.url}/commit/${benchData.repo.sha}`}
           target="_blank"
           rel="noopener noreferrer"
           className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"

@@ -23,6 +23,13 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 # Install gitoxide (gix CLI)
 RUN cargo install gitoxide --locked
 
+# Install ziggit (prebuilt release binary — no Zig toolchain or source build needed)
+ENV ZIGGIT_VERSION=v0.3.1
+RUN curl -fsSL -o /usr/local/bin/ziggit \
+      "https://github.com/hdresearch/ziggit/releases/download/${ZIGGIT_VERSION}/ziggit-linux-x86_64" && \
+    chmod +x /usr/local/bin/ziggit
+ENV ZIGGIT_BIN="/usr/local/bin/ziggit"
+
 # Install Bun
 RUN curl -fsSL https://bun.sh/install | bash
 ENV PATH="/root/.bun/bin:${PATH}"

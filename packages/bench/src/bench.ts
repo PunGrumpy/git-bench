@@ -10,6 +10,7 @@ import { gitoxideRunner } from "./runners/gitoxide";
 import { isomorphicGitRunner } from "./runners/isomorphic-git";
 import { libgit2FfiRunner } from "./runners/libgit2-ffi";
 import type { OperationId, Runner, RunnerContext } from "./runners/types";
+import { ziggitRunner } from "./runners/ziggit";
 
 const __dirname = import.meta.dirname;
 
@@ -30,6 +31,7 @@ const RUNNERS: Runner[] = [
   libgit2FfiRunner,
   gitoxideRunner,
   isomorphicGitRunner,
+  ziggitRunner,
 ];
 
 const BLOB_PATHS: string[] = [
@@ -114,6 +116,7 @@ const main = async () => {
     gixBin: config.bin.gix,
     libgit2Path: config.bin.libgit2,
     repoDir: config.git.repo,
+    ziggitBin: config.bin.ziggit,
   };
   const results: Sample[] = [];
 

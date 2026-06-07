@@ -61,10 +61,6 @@ export interface BenchData {
 
 export const benchData = results as BenchData;
 
-export const repoSlug = benchData.repo.url.replace("https://github.com/", "");
-
-export const repoCommitUrl = `${benchData.repo.url}/commit/${benchData.repo.sha}`;
-
 export const BASELINE_RUNNER = "git-cli" as const satisfies RunnerId;
 
 export const CHANGE_THRESHOLD_PERCENT = 0.5;
@@ -73,35 +69,47 @@ export const chartConfig = {
   "git-cli": {
     color: "hsl(24 95% 53%)",
     icon: () => (
-      <Image alt="" className="size-3.5 rounded-full" src={GitLogo} />
+      <Image alt="git CLI" className="size-3.5 rounded-full" src={GitLogo} />
     ),
     label: "git CLI",
   },
   gitoxide: {
     color: "hsl(38 92% 50%)",
     icon: () => (
-      <Image alt="" className="size-3.5 rounded-full" src={GitoxideLogo} />
+      <Image
+        alt="gitoxide"
+        className="size-3.5 rounded-full"
+        src={GitoxideLogo}
+      />
     ),
     label: "gitoxide",
   },
   "isomorphic-git": {
     color: "hsl(142 71% 45%)",
     icon: () => (
-      <Image alt="" className="size-3.5 rounded-full" src={IsomorphicGitLogo} />
+      <Image
+        alt="isomorphic-git"
+        className="size-3.5 rounded-full"
+        src={IsomorphicGitLogo}
+      />
     ),
     label: "isomorphic-git",
   },
   "libgit2-ffi": {
     color: "hsl(217 91% 60%)",
     icon: () => (
-      <Image alt="" className="size-3.5 rounded-full" src={Libgit2Logo} />
+      <Image
+        alt="libgit2-ffi"
+        className="size-3.5 rounded-full"
+        src={Libgit2Logo}
+      />
     ),
     label: "bun:ffi + libgit2",
   },
   ziggit: {
-    color: "hsl(37 94% 54%)",
+    color: "hsl(258, 90%, 66%)",
     icon: () => (
-      <Image alt="" className="size-3.5 rounded-full" src={ZiggitLogo} />
+      <Image alt="ziggit" className="size-3.5 rounded-full" src={ZiggitLogo} />
     ),
     label: "ziggit",
   },
