@@ -4,7 +4,7 @@
     "path": ".git-bench-repos/next.js",
     "sha": "88b2af7213fcc0a674f65ce65c4990d141f7aef1",
     "shortSha": "88b2af7",
-    "url": "https://github.com/vercel/next.js.git"
+    "url": "https://github.com/vercel/next.js"
   },
   "operations": [
     {
