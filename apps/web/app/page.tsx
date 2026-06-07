@@ -86,7 +86,9 @@ const Home = () => (
           rel="noopener noreferrer"
           className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
         >
-          {benchData.repo.url}
+          {benchData.repo.url
+            .replace(".git", "")
+            .replace("https://github.com/", "")}
         </a>
         . Each operation is timed across multiple samples; the median is
         reported.
