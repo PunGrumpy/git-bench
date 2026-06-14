@@ -26,12 +26,51 @@ export const BenchChart = () => {
     tabRefs.current = new Map();
   }
 
+  const indicatorRef = useRef<HTMLSpanElement | null>(null);
+  const isFirstMount = useRef(true);
+
   useEffect(() => {
-    tabRefs.current?.get(operation)?.scrollIntoView({
+    const activeTab = tabRefs.current?.get(operation);
+    activeTab?.scrollIntoView({
       behavior: "smooth",
       block: "nearest",
       inline: "nearest",
     });
+
+    const indicator = indicatorRef.current;
+    if (!activeTab || !indicator) {
+      return;
+    }
+
+    const updatePosition = (animate = true) => {
+      const activeEl = tabRefs.current?.get(operation);
+      if (!activeEl || !indicator) {
+        return;
+      }
+      const prev = indicator.style.transition;
+      if (!animate) {
+        indicator.style.transition = "none";
+      }
+      indicator.style.transform = `translateX(${activeEl.offsetLeft}px)`;
+      indicator.style.width = `${activeEl.offsetWidth}px`;
+      if (!animate) {
+        void indicator.offsetHeight;
+        indicator.style.transition = prev;
+      }
+    };
+
+    if (isFirstMount.current) {
+      updatePosition(false);
+      isFirstMount.current = false;
+    } else {
+      updatePosition(true);
+    }
+
+    const handleResize = () => updatePosition(false);
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   }, [operation]);
 
   return (
@@ -42,17 +81,21 @@ export const BenchChart = () => {
     >
       <div className="-mx-4 max-w-full overflow-x-auto px-4 scrollbar-hide sm:mx-0 sm:px-0">
         <TabsList
-          className="md:w-full w-max gap-x-3 justify-between border-b border-dotted bg-transparent p-0"
+          className="relative md:w-full w-max gap-x-3 justify-between border-b border-dotted bg-transparent p-0"
           variant="line"
         >
+          <span
+            ref={indicatorRef}
+            className="t-tabs-pill h-[2px]! top-auto! bottom-[-1.5px]! bg-foreground! rounded-none!"
+            aria-hidden="true"
+          />
           {benchData.operations.map((op) => (
             <TabsTrigger
               className={cn(
                 "shrink-0 flex-none px-0 text-sm text-muted-foreground",
                 "transition-[color,opacity] duration-150 ease-(--ease-out-strong)",
                 "data-active:font-medium data-active:text-foreground",
-                "group-data-horizontal/tabs:after:bottom-[-2.5px] group-data-horizontal/tabs:after:h-0.25",
-                "group-data-horizontal/tabs:after:ease-(--ease-out-strong)",
+                "after:hidden",
                 "focus-visible:outline-none focus-visible:ring-0"
               )}
               key={op.id}
