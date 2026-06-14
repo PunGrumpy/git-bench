@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { DesignSystemProvider } from "@/components/providers/client";
 import { Footer } from "@/components/sections/footer";
 import { Header } from "@/components/sections/header";
+import { AudioProvider } from "@/lib/audio/provider";
 import { fonts } from "@/lib/fonts";
 import { url } from "@/lib/url";
 import { escapeJsonForHtml } from "@/lib/utils";
@@ -61,16 +62,18 @@ const RootLayout = ({ children }: RootLayoutProps) => (
 
     <body className={fonts}>
       <DesignSystemProvider>
-        <div className="relative isolate flex min-h-dvh flex-col bg-background">
-          <div className="mx-auto w-full max-w-7xl flex-1 lg:grid lg:grid-cols-[1fr_42rem_1fr]">
-            <div aria-hidden className="hidden lg:block" />
-            <main className="mx-auto w-full px-4 sm:px-8 py-8 flex flex-col gap-12">
-              <Header />
-              <div className="flex flex-1 flex-col gap-12">{children}</div>
-              <Footer />
-            </main>
+        <AudioProvider>
+          <div className="relative isolate flex min-h-dvh flex-col bg-background">
+            <div className="mx-auto w-full max-w-7xl flex-1 lg:grid lg:grid-cols-[1fr_42rem_1fr]">
+              <div aria-hidden className="hidden lg:block" />
+              <main className="mx-auto w-full px-4 sm:px-8 py-8 flex flex-col gap-12">
+                <Header />
+                <div className="flex flex-1 flex-col gap-12">{children}</div>
+                <Footer />
+              </main>
+            </div>
           </div>
-        </div>
+        </AudioProvider>
       </DesignSystemProvider>
     </body>
   </html>

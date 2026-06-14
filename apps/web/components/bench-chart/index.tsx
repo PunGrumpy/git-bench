@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { BenchResultsTable } from "@/components/bench-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSfx } from "@/lib/audio/use-sfx";
 import { benchData } from "@/lib/bench";
 import type { OperationId } from "@/lib/bench";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,7 @@ const OperationChart = dynamic(
 );
 
 export const BenchChart = () => {
+  const { play } = useSfx();
   const [operation, setOperation] = useState<OperationId>(
     benchData.operations[0]?.id ?? "status"
   );
@@ -76,7 +78,10 @@ export const BenchChart = () => {
   return (
     <Tabs
       className="w-full gap-3"
-      onValueChange={(value) => setOperation(value as OperationId)}
+      onValueChange={(value) => {
+        setOperation(value as OperationId);
+        play("click");
+      }}
       value={operation}
     >
       <div className="-mx-4 max-w-full overflow-x-auto px-4 scrollbar-hide sm:mx-0 sm:px-0">
