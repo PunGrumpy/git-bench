@@ -1,11 +1,12 @@
 "use client";
 
+import type { AudioManifest } from "@joycostudio/suno";
+import { useSuno, useUnlock } from "@joycostudio/suno/react";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 import type { SVGProps } from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { useSfx } from "@/lib/audio/use-sfx";
 import { cn } from "@/lib/utils";
 
 export const SunIcon = ({ className, ...props }: SVGProps<SVGSVGElement>) => (
@@ -49,7 +50,8 @@ export const MoonIcon = ({ className, ...props }: SVGProps<SVGSVGElement>) => (
 );
 
 export const ThemeSwitcher = () => {
-  const { play } = useSfx();
+  const suno = useSuno<AudioManifest>();
+  const { unlock, unlocked } = useUnlock();
   const { theme, resolvedTheme, setTheme } = useTheme();
   const isDark =
     theme === "dark" || (theme !== "light" && resolvedTheme === "dark");
@@ -73,7 +75,18 @@ export const ThemeSwitcher = () => {
       Number.parseFloat(durValue) * (durValue.includes("ms") ? 1 : 1000) || 150;
 
     setAnimationClass("is-exit");
-    play("click");
+    const playAudio = async () => {
+      try {
+        if (!unlocked) {
+          await unlock();
+        }
+        const source = await suno.load("click");
+        source.play();
+      } catch {
+        // Ignore errors
+      }
+    };
+    playAudio();
 
     setTimeout(() => {
       setDisplayedText(nextText);

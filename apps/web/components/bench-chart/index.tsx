@@ -1,11 +1,12 @@
 "use client";
 
+import type { AudioManifest } from "@joycostudio/suno";
+import { useSuno, useUnlock } from "@joycostudio/suno/react";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 
 import { BenchResultsTable } from "@/components/bench-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useSfx } from "@/lib/audio/use-sfx";
 import { benchData } from "@/lib/bench";
 import type { OperationId } from "@/lib/bench";
 import { cn } from "@/lib/utils";
@@ -17,7 +18,8 @@ const OperationChart = dynamic(
 );
 
 export const BenchChart = () => {
-  const { play } = useSfx();
+  const suno = useSuno<AudioManifest>();
+  const { unlock, unlocked } = useUnlock();
   const [operation, setOperation] = useState<OperationId>(
     benchData.operations[0]?.id ?? "status"
   );
@@ -80,7 +82,18 @@ export const BenchChart = () => {
       className="w-full gap-3"
       onValueChange={(value) => {
         setOperation(value as OperationId);
-        play("click");
+        const playAudio = async () => {
+          try {
+            if (!unlocked) {
+              await unlock();
+            }
+            const source = await suno.load("click");
+            source.play();
+          } catch {
+            // Ignore errors
+          }
+        };
+        playAudio();
       }}
       value={operation}
     >
