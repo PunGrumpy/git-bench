@@ -1,9 +1,11 @@
 "use client";
 
 import { useTheme } from "next-themes";
+import { useEffect, useRef, useState } from "react";
 import type { SVGProps } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export const SunIcon = ({ className, ...props }: SVGProps<SVGSVGElement>) => (
   <svg
@@ -50,31 +52,65 @@ export const ThemeSwitcher = () => {
   const isDark =
     theme === "dark" || (theme !== "light" && resolvedTheme === "dark");
 
+  const [displayedText, setDisplayedText] = useState(isDark ? "Dark" : "Light");
+  const [animationClass, setAnimationClass] = useState("");
+  const textRef = useRef<HTMLSpanElement | null>(null);
+
+  useEffect(() => {
+    setDisplayedText(isDark ? "Dark" : "Light");
+  }, [isDark]);
+
+  const handleToggle = () => {
+    const nextTheme = isDark ? "light" : "dark";
+    const nextText = isDark ? "Light" : "Dark";
+
+    const durValue = getComputedStyle(
+      document.documentElement
+    ).getPropertyValue("--text-swap-dur");
+    const dur =
+      Number.parseFloat(durValue) * (durValue.includes("ms") ? 1 : 1000) || 150;
+
+    setAnimationClass("is-exit");
+
+    setTimeout(() => {
+      setDisplayedText(nextText);
+      setAnimationClass("is-enter-start");
+
+      requestAnimationFrame(() => {
+        if (textRef.current) {
+          void textRef.current.offsetHeight;
+        }
+        setAnimationClass("");
+        setTheme(nextTheme);
+      });
+    }, dur);
+  };
+
   return (
     <button
       type="button"
       suppressHydrationWarning
-      className="text-muted-foreground transition-colors hover:text-foreground"
-      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className="text-muted-foreground transition-colors hover:text-foreground outline-none focus:outline-none"
+      onClick={handleToggle}
       aria-label={`Theme: ${isDark ? "Dark" : "Light"}. Click to change theme.`}
     >
       <span className="flex size-9 items-center justify-center rounded-full border border-dotted hover:bg-sidebar transition-colors sm:hidden">
-        {isDark ? (
-          <MoonIcon className="size-4" />
-        ) : (
-          <SunIcon className="size-4" />
-        )}
+        <span className="t-icon-swap size-4" data-state={isDark ? "b" : "a"}>
+          <SunIcon className="t-icon size-4" data-icon="a" />
+          <MoonIcon className="t-icon size-4" data-icon="b" />
+        </span>
       </span>
       <Badge
         variant="outline"
         className="hidden sm:inline-flex h-auto items-center gap-2 py-2 px-4 bg-transparent hover:bg-sidebar transition-colors border-dotted"
       >
-        {isDark ? (
-          <MoonIcon className="size-3.5" />
-        ) : (
-          <SunIcon className="size-3.5" />
-        )}
-        {isDark ? "Dark" : "Light"}
+        <span className="t-icon-swap size-3.5" data-state={isDark ? "b" : "a"}>
+          <SunIcon className="t-icon size-3.5" data-icon="a" />
+          <MoonIcon className="t-icon size-3.5" data-icon="b" />
+        </span>
+        <span ref={textRef} className={cn("t-text-swap", animationClass)}>
+          {displayedText}
+        </span>
       </Badge>
     </button>
   );
