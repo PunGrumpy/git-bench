@@ -76,8 +76,9 @@ const BenchErrorCell = ({
         </HoverCardTrigger>
         <HoverCardContent
           align="center"
-          className="w-80 rounded-md border border-dotted bg-popover p-3 text-xs"
+          className="t-dropdown w-80 rounded-md border border-dotted bg-popover p-3 text-xs data-open:animate-none data-closed:animate-none"
           sideOffset={6}
+          data-origin="bottom-center"
         >
           <p className="mb-2 font-medium">{chartConfig[runnerId].label}</p>
           <p className="text-sm leading-snug text-foreground">{summary}</p>
