@@ -1,5 +1,0 @@
-{
-  "ignore": {
-    "files": ["hooks/use-mobile.ts", "components/ui/**", "opengraph-image.tsx"]
-  }
-}
