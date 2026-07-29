@@ -6,3 +6,14 @@ node_modules
 apps/web/.next
 packages/bench/tsconfig.tsbuildinfo
 apps/web/tsconfig.tsbuildinfo
+.env*
+.vercel
+.claude
+.cursor
+.agents
+.antigravitycli
+.husky
+.vscode
+.zed
+.verno
+plans
