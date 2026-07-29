@@ -32,8 +32,29 @@ const LIB_CANDIDATES = [
 
 const GIT_ITEROVER = -31;
 
+// libgit2 renamed its `*_init_options` helpers to `*_options_init` in 1.0;
+// try the modern spelling first and fall back for pre-1.0 libraries.
+const STATUS_OPTIONS_INIT_NAMES = [
+  "git_status_options_init",
+  "git_status_init_options",
+] as const;
+
+const GIT_STATUS_OPTIONS_VERSION = 1;
+// GIT_STATUS_OPT_INCLUDE_UNTRACKED (bit 0) plus
+// GIT_STATUS_OPT_RECURSE_UNTRACKED_DIRS (bit 4), spelled as the combined
+// literal because the lint config bans bitwise operators.
+const GIT_STATUS_OPT_UNTRACKED_FLAGS = 0x00_11;
+// `git_status_options` starts { unsigned int version; git_status_show_t show;
+// unsigned int flags; ... }, so `flags` sits at byte 8 on LP64 little-endian.
+const STATUS_FLAGS_OFFSET = 8;
+// The real struct is well under 64 bytes; over-allocating costs nothing and
+// tolerates fields added by future libgit2 releases.
+const STATUS_OPTIONS_SIZE = 256;
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-let signatures: any;
+let buildSignatures: (statusOptionsInitName: string) => any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let statusOptionsInit: any;
 
 const loadLib = (explicitPath?: string | null) => {
   const errors: string[] = [];
@@ -41,10 +62,15 @@ const loadLib = (explicitPath?: string | null) => {
     Boolean
   ) as string[];
   for (const candidate of candidates) {
-    try {
-      return bunFfi.dlopen(candidate, signatures);
-    } catch (error) {
-      errors.push(`${candidate}: ${(error as Error).message}`);
+    for (const initName of STATUS_OPTIONS_INIT_NAMES) {
+      try {
+        return {
+          initName,
+          lib: bunFfi.dlopen(candidate, buildSignatures(initName)),
+        };
+      } catch (error) {
+        errors.push(`${candidate} (${initName}): ${(error as Error).message}`);
+      }
     }
   }
   throw new Error(
@@ -61,6 +87,26 @@ const ok = (rc: number, what: string) => {
 };
 
 const outPtr = () => new BigUint64Array(1);
+
+// Passing NULL to git_status_list_new does not mean "defaults" - libgit2 fills
+// in INCLUDE_IGNORED too, so it reports ignored paths that `git status
+// --porcelain=v1` never prints. Initialize the struct explicitly and ask for
+// exactly what the git CLI collects: tracked changes plus untracked files.
+const statusOptions = () => {
+  const buf = Buffer.alloc(STATUS_OPTIONS_SIZE);
+  ok(
+    statusOptionsInit(buf, GIT_STATUS_OPTIONS_VERSION),
+    "git_status_options_init"
+  );
+  const version = buf.readUInt32LE(0);
+  if (version !== GIT_STATUS_OPTIONS_VERSION) {
+    throw new Error(
+      `git_status_options version readback was ${version}, expected ${GIT_STATUS_OPTIONS_VERSION}: struct layout mismatch`
+    );
+  }
+  buf.writeUInt32LE(GIT_STATUS_OPT_UNTRACKED_FLAGS, STATUS_FLAGS_OFFSET);
+  return buf;
+};
 
 export const libgit2FfiRunner: Runner = {
   id: "libgit2-ffi",
@@ -83,7 +129,7 @@ export const libgit2FfiRunner: Runner = {
         case "status": {
           const listOut = outPtr();
           ok(
-            symbols.git_status_list_new(listOut, repoPtr, null),
+            symbols.git_status_list_new(listOut, repoPtr, statusOptions()),
             "git_status_list_new"
           );
           const list = rd(listOut);
@@ -198,7 +244,12 @@ export const libgit2FfiRunner: Runner = {
   async setup(ctx: RunnerContext) {
     bunFfi = await import("bun:ffi");
     const { FFIType } = bunFfi;
-    signatures = {
+    buildSignatures = (statusOptionsInitName: string) => ({
+      [statusOptionsInitName]: {
+        args: [FFIType.ptr, FFIType.u32],
+        returns: FFIType.i32,
+      },
+      git_blob_rawcontent: { args: [FFIType.ptr], returns: FFIType.ptr },
       git_blob_rawsize: { args: [FFIType.ptr], returns: FFIType.u64 },
       git_commit_tree: {
         args: [FFIType.ptr, FFIType.ptr],
@@ -261,10 +312,12 @@ export const libgit2FfiRunner: Runner = {
         returns: FFIType.i32,
       },
       git_tree_free: { args: [FFIType.ptr], returns: FFIType.void },
-    };
+    });
 
-    lib = loadLib(ctx.libgit2Path);
+    const loaded = loadLib(ctx.libgit2Path);
+    ({ lib } = loaded);
     ({ symbols } = lib);
+    statusOptionsInit = symbols[loaded.initName];
 
     // git_libgit2_init returns the number of init calls (>=1 on success).
     const initRc = symbols.git_libgit2_init();
