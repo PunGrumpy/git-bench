@@ -81,20 +81,20 @@ const time = async (fn: () => Promise<unknown>): Promise<number> => {
 };
 
 const main = async () => {
-  if (!existsSync(config.git.repo)) {
-    console.error(
-      `Repo not found at ${config.git.repo}. Run bun bench:clone first.`
-    );
+  const repoRoot = resolve(__dirname, "..", "..", "..");
+  const repoDir = resolve(repoRoot, config.git.repo);
+  if (!existsSync(repoDir)) {
+    console.error(`Repo not found at ${repoDir}. Run bun bench:clone first.`);
     process.exit(1);
   }
-  const head = await execInRepo("git", config.git.repo, ["rev-parse", "HEAD"]);
+  const head = await execInRepo("git", repoDir, ["rev-parse", "HEAD"]);
   const sha = head.trim();
   const shortSha = sha.slice(0, 7);
   const ctx: RunnerContext = {
     blobPaths: BLOB_PATHS,
     gixBin: config.bin.gix,
     libgit2Path: config.bin.libgit2,
-    repoDir: config.git.repo,
+    repoDir,
     ziggitBin: config.bin.ziggit,
   };
   const results: Sample[] = [];
