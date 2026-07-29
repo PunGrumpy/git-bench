@@ -4,6 +4,7 @@ import { performance } from "node:perf_hooks";
 
 import config from "../bench.config.json";
 import { sanitizeBenchError, toErrorMessage } from "./format-error";
+import { signaturesAgree, signatureOf } from "./parity";
 import { execInRepo } from "./runners/exec";
 import { gitCliRunner } from "./runners/git-cli";
 import { gitoxideRunner } from "./runners/gitoxide";
@@ -26,6 +27,8 @@ const OPERATIONS: OperationId[] = [
   "changed-files",
   "read-25-blobs",
 ];
+
+const BASELINE_RUNNER_ID = "git-cli";
 
 const RUNNERS: Runner[] = [
   gitCliRunner,
@@ -112,6 +115,10 @@ const main = async () => {
     ziggitBin: config.bin.ziggit,
   };
   const results: Sample[] = [];
+  // git-cli runs first, so its warmup output is the baseline every other
+  // runner is checked against. Warn-only: a mismatch means the comparison is
+  // no longer apples-to-apples, but it must never fail the run.
+  const baseline = new Map<OperationId, string>();
 
   const skippedLibgit2 =
     config.bin.libgit2 === null && RUNNERS.some((r) => r.id === "libgit2-ffi");
@@ -147,7 +154,21 @@ const main = async () => {
     for (const op of OPERATIONS) {
       try {
         // warmup
-        await runner.run(op, ctx);
+        const warmup = await runner.run(op, ctx);
+        const signature = signatureOf(op, warmup);
+        if (runner.id === BASELINE_RUNNER_ID) {
+          baseline.set(op, signature);
+        } else {
+          const expected = baseline.get(op);
+          if (
+            expected !== undefined &&
+            !signaturesAgree(op, expected, signature)
+          ) {
+            console.warn(
+              `  PARITY MISMATCH ${runner.id}/${op}: ${signature} != ${expected}`
+            );
+          }
+        }
 
         const samples: number[] = [];
         for (let i = 0; i < config.bench.samples; i += 1) {

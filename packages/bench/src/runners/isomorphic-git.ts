@@ -22,7 +22,11 @@ export const isomorphicGitRunner: Runner = {
         return await git.log({ ...base, depth: 100 });
       }
       case "tracked-files": {
-        return await git.listFiles({ ...base, ref: "HEAD" });
+        // Without `ref`, listFiles enumerates the INDEX. Passing ref: "HEAD"
+        // walked the HEAD tree instead - a different data structure from the
+        // index that git-cli (`ls-files`), gitoxide (`index entries`), ziggit
+        // and libgit2 all read.
+        return await git.listFiles(base);
       }
       case "changed-files": {
         const head = await git.resolveRef({ ...base, ref: "HEAD" });
