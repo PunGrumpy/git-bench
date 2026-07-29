@@ -11,6 +11,7 @@ import { isomorphicGitRunner } from "./runners/isomorphic-git";
 import { libgit2FfiRunner } from "./runners/libgit2-ffi";
 import type { OperationId, Runner, RunnerContext } from "./runners/types";
 import { ziggitRunner } from "./runners/ziggit";
+import { stats } from "./stats";
 
 const __dirname = import.meta.dirname;
 
@@ -77,28 +78,6 @@ const time = async (fn: () => Promise<unknown>): Promise<number> => {
   const t0 = performance.now();
   await fn();
   return performance.now() - t0;
-};
-
-const stats = (samples: number[]) => {
-  if (samples.length === 0) {
-    return {
-      maxMs: 0,
-      meanMs: 0,
-      medianMs: 0,
-      minMs: 0,
-      samples: 0,
-    };
-  }
-  const sorted = [...samples].toSorted((a, b) => a - b);
-  const sum = sorted.reduce((a, b) => a + b, 0);
-  const lastIndex = sorted.length - 1;
-  return {
-    maxMs: sorted[lastIndex],
-    meanMs: sum / sorted.length,
-    medianMs: sorted[Math.floor(sorted.length / 2)],
-    minMs: sorted[0],
-    samples: sorted.length,
-  };
 };
 
 const main = async () => {
