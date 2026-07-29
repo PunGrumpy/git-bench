@@ -1,0 +1,27 @@
+name: Benchmark spike (manual)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Record runner hardware
+        run: |
+          lscpu | tee runner-info.txt
+          nproc >> runner-info.txt
+          df -h . >> runner-info.txt
+
+      - name: Run benchmark in Docker
+        run: bash scripts/docker-bench.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bench-results-${{ github.run_id }}
+          path: |
+            packages/bench/results.json
+            runner-info.txt
