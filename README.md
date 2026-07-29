@@ -72,4 +72,8 @@ You can configure the benchmark using `packages/bench/bench.config.json`:
 
 Each runner runs one warmup iteration, followed by `SAMPLES` timed iterations of each operation. Setup tasks (like opening the repository or loading JS modules) run outside the timed region to avoid skewing the results. The dashboard displays the median time per operation; the underlying JSON also records the mean, min, max, and sample count.
 
+All runners are held to the same work contract per operation — for example, `status` collects untracked (but not ignored) files, and `read-25-blobs` materializes full blob contents rather than only reading object headers. During warmup, each runner's output signature is compared against the `git` CLI baseline; disagreements are logged as `PARITY MISMATCH` warnings (never failures) so a runner that measures different work is visible instead of silently flattered.
+
+The published numbers were produced inside the Docker container on a GitHub Actions runner. Absolute times vary with the underlying CPU model; the stable signal is the comparison between runners, not the milliseconds themselves.
+
 The `libgit2-ffi` runner uses minimal `bun:ffi` bindings in `packages/bench/src/runners/libgit2-ffi.ts`.
