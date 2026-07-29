@@ -52,11 +52,11 @@ const runReactDoctor = (outputPath) => {
       : "./node_modules/.bin/react-doctor";
   const commands = [
     ...(existsSync(localBin)
-      ? [`${localBin} --verbose --scope changed --blocking warning --no-score`]
+      ? [`${localBin} --verbose --diff --blocking warning --no-score`]
       : []),
-    "react-doctor --verbose --scope changed --blocking warning --no-score",
-    "pnpm dlx react-doctor@latest --verbose --scope changed --blocking warning --no-score",
-    "npx --yes react-doctor@latest --verbose --scope changed --blocking warning --no-score",
+    "react-doctor --verbose --diff --blocking warning --no-score",
+    "pnpm dlx react-doctor@latest --verbose --diff --blocking warning --no-score",
+    "npx --yes react-doctor@latest --verbose --diff --blocking warning --no-score",
   ];
 
   for (const command of commands) {
