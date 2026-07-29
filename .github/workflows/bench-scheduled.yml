@@ -72,11 +72,9 @@ jobs:
           fi
 
           {
-            printf '|  |  |\n| --- | --- |\n'
-            printf '| **CPU** | `%s` |\n' "$CPU"
-            printf '| **Previous** | `%s` |\n' "$PREV_CPU"
-            printf '| **Comparability** | %s |\n' "$compare"
-            printf '| **Source** | [Actions run](%s) |\n' "$RUN_URL"
+            printf '| CPU | Previous | Comparability | Source |\n'
+            printf '| --- | --- | --- | --- |\n'
+            printf '| `%s` | `%s` | %s | [run](%s) |\n' "$CPU" "$PREV_CPU" "$compare" "$RUN_URL"
             printf '\n'
             if grep -q "PARITY MISMATCH" bench-output.txt; then
               printf '**Parity** — runner output differs from the `git` baseline:\n\n'
