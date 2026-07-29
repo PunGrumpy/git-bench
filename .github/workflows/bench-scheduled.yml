@@ -28,15 +28,6 @@ jobs:
       - name: Run benchmark in Docker
         run: bash scripts/docker-bench.sh 2>&1 | tee bench-output.txt
 
-      - name: Collect parity warnings
-        id: parity
-        run: |
-          {
-            echo "warnings<<PARITY_EOF"
-            grep "PARITY MISMATCH" bench-output.txt || echo "(none)"
-            echo "PARITY_EOF"
-          } >> "$GITHUB_OUTPUT"
-
       - name: Record environment into results
         run: |
           jq --arg cpu "${{ steps.hw.outputs.cpu }}" \
@@ -57,7 +48,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           CPU: ${{ steps.hw.outputs.cpu }}
           PREV_CPU: ${{ steps.hw.outputs.prev_cpu }}
-          PARITY: ${{ steps.parity.outputs.warnings }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           if git diff --quiet packages/bench/results.json; then
             echo "results.json unchanged; nothing to publish."
@@ -71,23 +62,31 @@ jobs:
           git add packages/bench/results.json
           git commit -m "chore(bench): weekly results refresh ($stamp)"
           git push -u origin "$branch" --force
-          cpu_note="CPU this run: \`$CPU\` (previous snapshot: \`$PREV_CPU\`)."
-          if [ "$CPU" != "$PREV_CPU" ]; then
-            cpu_note="$cpu_note ⚠️ Different model than the previous snapshot — absolute times are NOT comparable across CPU models (see plans/007-findings.md); the cross-runner ranking is the stable signal."
+
+          if [ "$PREV_CPU" = "unrecorded" ]; then
+            compare="🆕 first snapshot with a recorded model"
+          elif [ "$CPU" = "$PREV_CPU" ]; then
+            compare="✅ same model — comparable with the previous snapshot"
+          else
+            compare="⚠️ different model — compare rankings, not milliseconds"
           fi
-          body=$(printf '%s\n' \
-            "Automated weekly benchmark refresh from run ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}." \
-            "" \
-            "$cpu_note" \
-            "" \
-            "Parity warnings from the warmup phase:" \
-            '```' \
-            "$PARITY" \
-            '```' \
-            "" \
-            "Note: PRs opened by the Actions token do not trigger the CI \`verify\` workflow automatically — close and reopen this PR to run it, or verify locally before merging." \
-            "" \
-            "🤖 Generated with [Claude Code](https://claude.com/claude-code)")
+
+          {
+            printf '| CPU | Previous | Comparability | Source |\n'
+            printf '| --- | --- | --- | --- |\n'
+            printf '| `%s` | `%s` | %s | [run](%s) |\n' "$CPU" "$PREV_CPU" "$compare" "$RUN_URL"
+            printf '\n'
+            if grep -q "PARITY MISMATCH" bench-output.txt; then
+              printf '**Parity** — runner output differs from the `git` baseline:\n\n'
+              printf '| Runner / operation | Observed | Baseline |\n| --- | --- | --- |\n'
+              sed -n 's/^ *PARITY MISMATCH \([^:]*\): \(.*\) != \(.*\)$/| `\1` | \2 | \3 |/p' bench-output.txt
+            else
+              printf '**Parity** — ✅ all runners agree with the `git` baseline.\n'
+            fi
+            printf '\n'
+            printf '> CI `verify` does not auto-run on bot PRs — close & reopen to trigger it.\n'
+          } > pr-body.md
+
           gh pr create --base main --head "$branch" \
             --title "chore(bench): weekly results refresh $stamp" \
-            --body "$body"
+            --body-file pr-body.md
