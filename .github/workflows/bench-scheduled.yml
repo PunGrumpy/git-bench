@@ -1,0 +1,93 @@
+name: Scheduled benchmark refresh
+
+on:
+  schedule:
+    # Mondays 03:00 UTC (10:00 Asia/Bangkok)
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Record runner hardware
+        id: hw
+        run: |
+          lscpu | tee runner-info.txt
+          model=$(lscpu | sed -n 's/^Model name:[[:space:]]*//p' | head -1)
+          echo "cpu=$model" >> "$GITHUB_OUTPUT"
+          echo "prev_cpu=$(jq -r '.environment.cpu // "unrecorded"' packages/bench/results.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Run benchmark in Docker
+        run: bash scripts/docker-bench.sh 2>&1 | tee bench-output.txt
+
+      - name: Collect parity warnings
+        id: parity
+        run: |
+          {
+            echo "warnings<<PARITY_EOF"
+            grep "PARITY MISMATCH" bench-output.txt || echo "(none)"
+            echo "PARITY_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Record environment into results
+        run: |
+          jq --arg cpu "${{ steps.hw.outputs.cpu }}" \
+            '.environment = {cpu: $cpu, source: "github-actions"}' \
+            packages/bench/results.json > results.tmp
+          mv results.tmp packages/bench/results.json
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: bench-results-${{ github.run_id }}
+          path: |
+            packages/bench/results.json
+            runner-info.txt
+            bench-output.txt
+
+      - name: Open results PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CPU: ${{ steps.hw.outputs.cpu }}
+          PREV_CPU: ${{ steps.hw.outputs.prev_cpu }}
+          PARITY: ${{ steps.parity.outputs.warnings }}
+        run: |
+          if git diff --quiet packages/bench/results.json; then
+            echo "results.json unchanged; nothing to publish."
+            exit 0
+          fi
+          stamp=$(date -u +%Y-%m-%d)
+          branch="bench-results/$stamp"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add packages/bench/results.json
+          git commit -m "chore(bench): weekly results refresh ($stamp)"
+          git push -u origin "$branch" --force
+          cpu_note="CPU this run: \`$CPU\` (previous snapshot: \`$PREV_CPU\`)."
+          if [ "$CPU" != "$PREV_CPU" ]; then
+            cpu_note="$cpu_note ⚠️ Different model than the previous snapshot — absolute times are NOT comparable across CPU models (see plans/007-findings.md); the cross-runner ranking is the stable signal."
+          fi
+          body=$(printf '%s\n' \
+            "Automated weekly benchmark refresh from run ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}." \
+            "" \
+            "$cpu_note" \
+            "" \
+            "Parity warnings from the warmup phase:" \
+            '```' \
+            "$PARITY" \
+            '```' \
+            "" \
+            "Note: PRs opened by the Actions token do not trigger the CI \`verify\` workflow automatically — close and reopen this PR to run it, or verify locally before merging." \
+            "" \
+            "🤖 Generated with [Claude Code](https://claude.com/claude-code)")
+          gh pr create --base main --head "$branch" \
+            --title "chore(bench): weekly results refresh $stamp" \
+            --body "$body"
