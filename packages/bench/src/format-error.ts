@@ -51,6 +51,8 @@ export const sanitizeBenchError = (raw: string, repoPath: string): string => {
   return normalizeRawError(safeRaw)
     .replace(unixPattern, normalized)
     .replace(windowsPattern, normalized)
+    .replaceAll(/(?<![\w])\/(?:[^/\s:]+\/)+([^/\s:]+)/gu, "$1")
+    .replaceAll(/(?<![\w])[A-Za-z]:\\(?:[^\\\s:]+\\)+([^\\\s:]+)/gu, "$1")
     .replaceAll(/\s+/gu, " ")
     .trim();
 };
