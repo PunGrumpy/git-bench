@@ -51,3 +51,6 @@ dist
 
 # git-bench cloned repos
 .git-bench-repos/
+
+# AI agent worktrees
+.claude/worktrees
