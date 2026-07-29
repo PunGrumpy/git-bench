@@ -10,7 +10,7 @@
   },
   "bin": {
     "gix": "gix",
-    "libgit2": null,
+    "libgit2": "/usr/lib/x86_64-linux-gnu/libgit2.so",
     "ziggit": "ziggit"
   }
 }
