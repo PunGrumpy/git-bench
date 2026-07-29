@@ -35,6 +35,12 @@ const RUNNERS: Runner[] = [
   ziggitRunner,
 ];
 
+export const selectRunners = (
+  runners: Runner[],
+  libgit2Path: string | null | undefined
+): Runner[] =>
+  runners.filter((r) => !(r.id === "libgit2-ffi" && libgit2Path === null));
+
 const BLOB_PATHS: string[] = [
   "package.json",
   "pnpm-lock.yaml",
@@ -107,7 +113,13 @@ const main = async () => {
   };
   const results: Sample[] = [];
 
-  for (const runner of RUNNERS) {
+  const skippedLibgit2 =
+    config.bin.libgit2 === null && RUNNERS.some((r) => r.id === "libgit2-ffi");
+  if (skippedLibgit2) {
+    console.log("=== libgit2 FFI (skipped: bin.libgit2 is null) ===");
+  }
+
+  for (const runner of selectRunners(RUNNERS, config.bin.libgit2)) {
     console.log(`\n=== ${runner.label} (${runner.id}) ===`);
     try {
       if (runner.setup) {
@@ -193,9 +205,11 @@ const main = async () => {
   }
 };
 
-try {
-  await main();
-} catch (error) {
-  console.error(error);
-  process.exit(1);
+if (import.meta.main) {
+  try {
+    await main();
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
 }

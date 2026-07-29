@@ -58,15 +58,15 @@ You can configure the benchmark using `packages/bench/bench.config.json`:
 }
 ```
 
-| Key             | Description                                                  |
-| --------------- | ------------------------------------------------------------ |
-| `git.remote`    | Clone URL for the repository to benchmark                    |
-| `git.repo`      | Local path (relative to project root) for the cloned repo    |
-| `bench.samples` | Number of timed iterations per operation                     |
-| `bench.results` | Output path for results JSON (relative to `packages/bench/`) |
-| `bin.gix`       | Path to the `gix` (gitoxide) binary                          |
-| `bin.libgit2`   | Path to the `libgit2` shared library, or `null` to skip      |
-| `bin.ziggit`    | Path to the `ziggit` binary                                  |
+| Key             | Description                                                                                |
+| --------------- | ------------------------------------------------------------------------------------------ |
+| `git.remote`    | Clone URL for the repository to benchmark                                                  |
+| `git.repo`      | Local path (relative to project root) for the cloned repo                                  |
+| `bench.samples` | Number of timed iterations per operation                                                   |
+| `bench.results` | Output path for results JSON (relative to `packages/bench/`)                               |
+| `bin.gix`       | Path to the `gix` (gitoxide) binary                                                        |
+| `bin.libgit2`   | Path to the `libgit2` shared library; `null` skips the runner; omit the key to auto-detect |
+| `bin.ziggit`    | Path to the `ziggit` binary                                                                |
 
 ## Methodology
 
