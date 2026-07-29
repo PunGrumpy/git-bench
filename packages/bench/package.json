@@ -11,6 +11,7 @@
   "scripts": {
     "bench": "bun run src/bench.ts",
     "bench:clone": "bash scripts/clone-repo.sh",
+    "test": "bun test",
     "typecheck": "tsgo --noEmit"
   },
   "dependencies": {
