@@ -228,7 +228,16 @@ export const libgit2FfiRunner: Runner = {
               `revparse HEAD:${p}`
             );
             const obj = rd(objOut);
-            sizes.push(Number(symbols.git_blob_rawsize(obj)));
+            const size = Number(symbols.git_blob_rawsize(obj));
+            // Reading rawsize alone inflated this runner: every other runner
+            // materializes the bytes (`git show`, `gix cat`, git.readBlob).
+            // toArrayBuffer only wraps libgit2's buffer, so slice() to force
+            // the copy - and do it before git_object_free invalidates it.
+            const contentPtr = symbols.git_blob_rawcontent(obj);
+            const copied = new Uint8Array(
+              bunFfi.toArrayBuffer(contentPtr, 0, size)
+            ).slice();
+            sizes.push(copied.byteLength);
             symbols.git_object_free(obj);
           }
           return sizes;

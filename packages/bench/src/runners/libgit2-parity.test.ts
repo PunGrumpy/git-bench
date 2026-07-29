@@ -40,7 +40,9 @@ write("b.txt", B_TXT);
 git("add", ".gitignore", "a.txt", "b.txt");
 commit("first");
 write("c.txt", "third\n");
-git("add", "c.txt");
+// A zero-byte blob: the content copy must not choke on a length of 0.
+write("empty.txt", "");
+git("add", "c.txt", "empty.txt");
 commit("second");
 // One untracked file (git reports it) and one ignored file (git does not).
 write("untracked.txt", "untracked\n");
@@ -94,5 +96,33 @@ describe.skipIf(!libAvailable)("libgit2-ffi status work parity", () => {
     const count = (await libgit2FfiRunner.run("status", ctx)) as number;
     write("a.txt", A_TXT);
     expect(count).toBe(2);
+  });
+});
+
+describe.skipIf(!libAvailable)("libgit2-ffi read-25-blobs work parity", () => {
+  it("returns one entry per requested blob path", async () => {
+    const out = (await libgit2FfiRunner.run("read-25-blobs", ctx)) as number[];
+    expect(out).toHaveLength(ctx.blobPaths.length);
+  });
+
+  it("copies out byte counts matching the committed file contents", async () => {
+    const out = (await libgit2FfiRunner.run("read-25-blobs", ctx)) as number[];
+    expect(out).toEqual([Buffer.byteLength(A_TXT), Buffer.byteLength(B_TXT)]);
+  });
+
+  it("reports a non-zero length for every non-empty blob", async () => {
+    const out = (await libgit2FfiRunner.run("read-25-blobs", ctx)) as number[];
+    for (const byteLength of out) {
+      expect(byteLength).toBeGreaterThan(0);
+    }
+  });
+
+  it("handles a zero-byte blob without throwing", async () => {
+    const emptyCtx: RunnerContext = { blobPaths: ["empty.txt"], repoDir };
+    const out = (await libgit2FfiRunner.run(
+      "read-25-blobs",
+      emptyCtx
+    )) as number[];
+    expect(out).toEqual([0]);
   });
 });
