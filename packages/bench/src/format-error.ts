@@ -6,6 +6,9 @@ export interface FormattedBenchError {
   readonly detail: string | null;
 }
 
+export const toErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
+
 const escapeRegExp = (value: string): string =>
   value.replaceAll(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 
@@ -34,6 +37,7 @@ const repoPathPatterns = (repoPath: string) => {
 };
 
 export const sanitizeBenchError = (raw: string, repoPath: string): string => {
+  const safeRaw = typeof raw === "string" ? raw : String(raw);
   const { escaped, normalized } = repoPathPatterns(repoPath);
   const unixPattern = new RegExp(
     `(?<![\\w])/(?:[^/\\s]+/)*?${escaped}(?=/|$)`,
@@ -44,9 +48,11 @@ export const sanitizeBenchError = (raw: string, repoPath: string): string => {
     "gu"
   );
 
-  return normalizeRawError(raw)
+  return normalizeRawError(safeRaw)
     .replace(unixPattern, normalized)
     .replace(windowsPattern, normalized)
+    .replaceAll(/(?<![\w])\/(?:[^/\s:]+\/)+([^/\s:]+)/gu, "$1")
+    .replaceAll(/(?<![\w])[A-Za-z]:\\(?:[^\\\s:]+\\)+([^\\\s:]+)/gu, "$1")
     .replaceAll(/\s+/gu, " ")
     .trim();
 };

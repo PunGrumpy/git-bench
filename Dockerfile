@@ -28,7 +28,6 @@ ENV ZIGGIT_VERSION=v0.3.1
 RUN curl -fsSL -o /usr/local/bin/ziggit \
       "https://github.com/hdresearch/ziggit/releases/download/${ZIGGIT_VERSION}/ziggit-linux-x86_64" && \
     chmod +x /usr/local/bin/ziggit
-ENV ZIGGIT_BIN="/usr/local/bin/ziggit"
 
 # Install Bun
 RUN curl -fsSL https://bun.sh/install | bash
@@ -56,10 +55,6 @@ COPY . .
 
 # Ensure entrypoint script is executable
 RUN chmod +x scripts/docker-entrypoint.sh packages/bench/scripts/clone-repo.sh
-
-# Default environment configurations
-ENV REPO_DIR="/app/.git-bench-repos/next.js"
-ENV GIX_BIN="/root/.cargo/bin/gix"
 
 # Output directory volume for results.json
 VOLUME /output

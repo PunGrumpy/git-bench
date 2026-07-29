@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { performance } from "node:perf_hooks";
 
 import config from "../bench.config.json";
-import { sanitizeBenchError } from "./format-error";
+import { sanitizeBenchError, toErrorMessage } from "./format-error";
 import { execInRepo } from "./runners/exec";
 import { gitCliRunner } from "./runners/git-cli";
 import { gitoxideRunner } from "./runners/gitoxide";
@@ -34,6 +34,12 @@ const RUNNERS: Runner[] = [
   isomorphicGitRunner,
   ziggitRunner,
 ];
+
+export const selectRunners = (
+  runners: Runner[],
+  libgit2Path: string | null | undefined
+): Runner[] =>
+  runners.filter((r) => !(r.id === "libgit2-ffi" && libgit2Path === null));
 
 const BLOB_PATHS: string[] = [
   "package.json",
@@ -81,32 +87,46 @@ const time = async (fn: () => Promise<unknown>): Promise<number> => {
 };
 
 const main = async () => {
-  if (!existsSync(config.git.repo)) {
-    console.error(
-      `Repo not found at ${config.git.repo}. Run bun bench:clone first.`
-    );
+  const resultsPath = resolve(__dirname, "..", config.bench.results);
+  let existing: Record<string, unknown> = {};
+  try {
+    existing = JSON.parse(readFileSync(resultsPath, "utf-8"));
+  } catch {
+    console.warn(`No readable results file at ${resultsPath}; starting fresh.`);
+  }
+
+  const repoRoot = resolve(__dirname, "..", "..", "..");
+  const repoDir = resolve(repoRoot, config.git.repo);
+  if (!existsSync(repoDir)) {
+    console.error(`Repo not found at ${repoDir}. Run bun bench:clone first.`);
     process.exit(1);
   }
-  const head = await execInRepo("git", config.git.repo, ["rev-parse", "HEAD"]);
+  const head = await execInRepo("git", repoDir, ["rev-parse", "HEAD"]);
   const sha = head.trim();
   const shortSha = sha.slice(0, 7);
   const ctx: RunnerContext = {
     blobPaths: BLOB_PATHS,
     gixBin: config.bin.gix,
     libgit2Path: config.bin.libgit2,
-    repoDir: config.git.repo,
+    repoDir,
     ziggitBin: config.bin.ziggit,
   };
   const results: Sample[] = [];
 
-  for (const runner of RUNNERS) {
+  const skippedLibgit2 =
+    config.bin.libgit2 === null && RUNNERS.some((r) => r.id === "libgit2-ffi");
+  if (skippedLibgit2) {
+    console.log("=== libgit2 FFI (skipped: bin.libgit2 is null) ===");
+  }
+
+  for (const runner of selectRunners(RUNNERS, config.bin.libgit2)) {
     console.log(`\n=== ${runner.label} (${runner.id}) ===`);
     try {
       if (runner.setup) {
         await runner.setup(ctx);
       }
     } catch (error) {
-      const { message } = error as Error;
+      const message = toErrorMessage(error);
       console.error(`  setup failed: ${message}`);
       const setupError = toBenchError(`setup: ${message}`);
       for (const op of OPERATIONS) {
@@ -141,7 +161,7 @@ const main = async () => {
           `  ${op.padEnd(16)} median=${s.medianMs.toFixed(2)}ms mean=${s.meanMs.toFixed(2)}ms n=${s.samples}`
         );
       } catch (error) {
-        const msg = (error as Error).message;
+        const msg = toErrorMessage(error);
         results.push({
           error: toBenchError(msg),
           maxMs: 0,
@@ -160,13 +180,11 @@ const main = async () => {
       try {
         await runner.teardown();
       } catch (error) {
-        console.error(`  teardown: ${(error as Error).message}`);
+        console.error(`  teardown: ${toErrorMessage(error)}`);
       }
     }
   }
 
-  const resultsPath = resolve(__dirname, "..", config.bench.results);
-  const existing = JSON.parse(readFileSync(resultsPath, "utf-8"));
   const payload = {
     ...existing,
     lastBenchmarked: new Date().toISOString().slice(0, 10),
@@ -178,13 +196,20 @@ const main = async () => {
     },
     results,
   };
-  writeFileSync(resultsPath, `${JSON.stringify(payload, null, 2)}\n`);
-  console.log(`\nWrote ${results.length} samples to ${resultsPath}`);
+  try {
+    writeFileSync(resultsPath, `${JSON.stringify(payload, null, 2)}\n`);
+    console.log(`\nWrote ${results.length} samples to ${resultsPath}`);
+  } catch (error) {
+    console.log(JSON.stringify(payload));
+    throw error;
+  }
 };
 
-try {
-  await main();
-} catch (error) {
-  console.error(error);
-  process.exit(1);
+if (import.meta.main) {
+  try {
+    await main();
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
 }

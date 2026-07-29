@@ -48,7 +48,7 @@ const loadLib = (explicitPath?: string | null) => {
     }
   }
   throw new Error(
-    `Could not load libgit2 from any candidate. Tried:\n${errors.join("\n")}`
+    `Could not load libgit2 (tried ${candidates.length} locations). Last error: ${errors.at(-1)}`
   );
 };
 

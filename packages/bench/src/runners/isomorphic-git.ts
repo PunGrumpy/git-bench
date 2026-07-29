@@ -27,6 +27,11 @@ export const isomorphicGitRunner: Runner = {
       case "changed-files": {
         const head = await git.resolveRef({ ...base, ref: "HEAD" });
         const recentCommits = await git.log({ ...base, depth: 2 });
+        if (recentCommits.length < 2) {
+          throw new Error(
+            "changed-files requires a repo with at least two commits"
+          );
+        }
         const parent = recentCommits[1].oid;
         const a = await git.walk({
           ...base,
