@@ -81,6 +81,14 @@ const time = async (fn: () => Promise<unknown>): Promise<number> => {
 };
 
 const main = async () => {
+  const resultsPath = resolve(__dirname, "..", config.bench.results);
+  let existing: Record<string, unknown> = {};
+  try {
+    existing = JSON.parse(readFileSync(resultsPath, "utf-8"));
+  } catch {
+    console.warn(`No readable results file at ${resultsPath}; starting fresh.`);
+  }
+
   const repoRoot = resolve(__dirname, "..", "..", "..");
   const repoDir = resolve(repoRoot, config.git.repo);
   if (!existsSync(repoDir)) {
@@ -165,8 +173,6 @@ const main = async () => {
     }
   }
 
-  const resultsPath = resolve(__dirname, "..", config.bench.results);
-  const existing = JSON.parse(readFileSync(resultsPath, "utf-8"));
   const payload = {
     ...existing,
     lastBenchmarked: new Date().toISOString().slice(0, 10),
@@ -178,8 +184,13 @@ const main = async () => {
     },
     results,
   };
-  writeFileSync(resultsPath, `${JSON.stringify(payload, null, 2)}\n`);
-  console.log(`\nWrote ${results.length} samples to ${resultsPath}`);
+  try {
+    writeFileSync(resultsPath, `${JSON.stringify(payload, null, 2)}\n`);
+    console.log(`\nWrote ${results.length} samples to ${resultsPath}`);
+  } catch (error) {
+    console.log(JSON.stringify(payload));
+    throw error;
+  }
 };
 
 try {
