@@ -1,8 +1,27 @@
 import { describe, expect, it } from "bun:test";
 
-import { formatBenchError, sanitizeBenchError } from "./format-error";
+import {
+  formatBenchError,
+  sanitizeBenchError,
+  toErrorMessage,
+} from "./format-error";
 
 const REPO_PATH = ".git-bench-repos/next.js";
+
+describe("toErrorMessage", () => {
+  it("returns the message of an Error instance", () => {
+    expect(toErrorMessage(new Error("x"))).toBe("x");
+  });
+
+  it("returns a plain string unchanged", () => {
+    expect(toErrorMessage("plain")).toBe("plain");
+  });
+
+  it("stringifies a non-Error, non-string value", () => {
+    const value: unknown = undefined;
+    expect(toErrorMessage(value)).toBe("undefined");
+  });
+});
 
 describe("sanitizeBenchError", () => {
   it("strips everything before the isomorphic-git marker", () => {
@@ -58,6 +77,14 @@ describe("sanitizeBenchError", () => {
       REPO_PATH
     );
     expect(out).toBe("/home/someuser/other/thing.so: cannot open");
+  });
+
+  it("does not throw when fed a non-string value", () => {
+    let out = "";
+    expect(() => {
+      out = sanitizeBenchError(undefined as never, REPO_PATH);
+    }).not.toThrow();
+    expect(typeof out).toBe("string");
   });
 });
 

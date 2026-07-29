@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { performance } from "node:perf_hooks";
 
 import config from "../bench.config.json";
-import { sanitizeBenchError } from "./format-error";
+import { sanitizeBenchError, toErrorMessage } from "./format-error";
 import { execInRepo } from "./runners/exec";
 import { gitCliRunner } from "./runners/git-cli";
 import { gitoxideRunner } from "./runners/gitoxide";
@@ -114,7 +114,7 @@ const main = async () => {
         await runner.setup(ctx);
       }
     } catch (error) {
-      const { message } = error as Error;
+      const message = toErrorMessage(error);
       console.error(`  setup failed: ${message}`);
       const setupError = toBenchError(`setup: ${message}`);
       for (const op of OPERATIONS) {
@@ -149,7 +149,7 @@ const main = async () => {
           `  ${op.padEnd(16)} median=${s.medianMs.toFixed(2)}ms mean=${s.meanMs.toFixed(2)}ms n=${s.samples}`
         );
       } catch (error) {
-        const msg = (error as Error).message;
+        const msg = toErrorMessage(error);
         results.push({
           error: toBenchError(msg),
           maxMs: 0,
@@ -168,7 +168,7 @@ const main = async () => {
       try {
         await runner.teardown();
       } catch (error) {
-        console.error(`  teardown: ${(error as Error).message}`);
+        console.error(`  teardown: ${toErrorMessage(error)}`);
       }
     }
   }
