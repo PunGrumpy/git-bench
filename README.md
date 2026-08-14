@@ -58,19 +58,21 @@ You can configure the benchmark using `packages/bench/bench.config.json`:
 }
 ```
 
-| Key             | Description                                                                                |
-| --------------- | ------------------------------------------------------------------------------------------ |
-| `git.remote`    | Clone URL for the repository to benchmark                                                  |
-| `git.repo`      | Local path (relative to project root) for the cloned repo                                  |
-| `bench.samples` | Number of timed iterations per operation                                                   |
-| `bench.results` | Output path for results JSON (relative to `packages/bench/`)                               |
-| `bin.gix`       | Path to the `gix` (gitoxide) binary                                                        |
-| `bin.libgit2`   | Path to the `libgit2` shared library; `null` skips the runner; omit the key to auto-detect |
-| `bin.ziggit`    | Path to the `ziggit` binary                                                                |
+| Key | Description |
+| --- | --- |
+| `git.remote` | Clone URL for the repository to benchmark |
+| `git.repo` | Local path (relative to project root) for the cloned repo |
+| `bench.samples` | Number of timed iterations per operation |
+| `bench.results` | Output path for results JSON (relative to `packages/bench/`) |
+| `bin.gix` | Path to the `gix` (gitoxide) binary |
+| `bin.libgit2` | Path to the `libgit2` shared library; `null` skips the runner; omit the key to auto-detect |
+| `bin.ziggit` | Path to the `ziggit` binary |
 
 ## Methodology
 
 Each runner runs one warmup iteration, followed by `SAMPLES` timed iterations of each operation. Setup tasks (like opening the repository or loading JS modules) run outside the timed region to avoid skewing the results. The dashboard displays the median time per operation; the underlying JSON also records the mean, min, max, and sample count.
+
+The dashboard also ranks runners by a single score: each operation is expressed as a multiple of the `git` CLI, and the multiples are combined with a geometric mean. Ratios keep operations that differ by four orders of magnitude comparable, and the geometric mean stops one slow operation from deciding the aggregate on its own. The score is computed in the web app from `results.json`, not stored in it.
 
 All runners are held to the same work contract per operation — for example, `status` collects untracked (but not ignored) files, and `read-25-blobs` materializes full blob contents rather than only reading object headers. During warmup, each runner's output signature is compared against the `git` CLI baseline; disagreements are logged as `PARITY MISMATCH` warnings (never failures) so a runner that measures different work is visible instead of silently flattered.
 
