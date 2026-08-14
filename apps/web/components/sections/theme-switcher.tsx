@@ -3,11 +3,9 @@
 import type { AudioManifest } from "@joycostudio/suno";
 import { useSuno, useUnlock } from "@joycostudio/suno/react";
 import { useTheme } from "next-themes";
-import { useEffect, useRef, useState } from "react";
 import type { SVGProps } from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 
 export const SunIcon = ({ className, ...props }: SVGProps<SVGSVGElement>) => (
   <svg
@@ -52,29 +50,9 @@ export const MoonIcon = ({ className, ...props }: SVGProps<SVGSVGElement>) => (
 export const ThemeSwitcher = () => {
   const suno = useSuno<AudioManifest>();
   const { unlock, unlocked } = useUnlock();
-  const { theme, resolvedTheme, setTheme } = useTheme();
-  const isDark =
-    theme === "dark" || (theme !== "light" && resolvedTheme === "dark");
-
-  const [displayedText, setDisplayedText] = useState(isDark ? "Dark" : "Light");
-  const [animationClass, setAnimationClass] = useState("");
-  const textRef = useRef<HTMLSpanElement | null>(null);
-
-  useEffect(() => {
-    setDisplayedText(isDark ? "Dark" : "Light");
-  }, [isDark]);
+  const { resolvedTheme, setTheme } = useTheme();
 
   const handleToggle = () => {
-    const nextTheme = isDark ? "light" : "dark";
-    const nextText = isDark ? "Light" : "Dark";
-
-    const durValue = getComputedStyle(
-      document.documentElement
-    ).getPropertyValue("--text-swap-dur");
-    const dur =
-      Number.parseFloat(durValue) * (durValue.includes("ms") ? 1 : 1000) || 150;
-
-    setAnimationClass("is-exit");
     const playAudio = async () => {
       try {
         if (!unlocked) {
@@ -83,50 +61,34 @@ export const ThemeSwitcher = () => {
         const source = await suno.load("click");
         source.play();
       } catch {
-        // Ignore errors
+        // Audio is a garnish; a blocked or missing sound never blocks the UI.
       }
     };
     playAudio();
-
-    setTimeout(() => {
-      setDisplayedText(nextText);
-      setAnimationClass("is-enter-start");
-
-      requestAnimationFrame(() => {
-        if (textRef.current) {
-          void textRef.current.offsetHeight;
-        }
-        setAnimationClass("");
-        setTheme(nextTheme);
-      });
-    }, dur);
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
+  // Which theme is active is read off the `dark` class rather than React state,
+  // so the first paint matches the server and there is nothing to hydrate.
   return (
     <button
-      type="button"
-      suppressHydrationWarning
-      className="text-muted-foreground transition-colors hover:text-foreground outline-none focus:outline-none"
+      aria-label="Toggle theme"
+      className="text-muted-foreground hover:text-foreground transition-colors"
       onClick={handleToggle}
-      aria-label={`Theme: ${isDark ? "Dark" : "Light"}. Click to change theme.`}
+      type="button"
     >
-      <span className="flex size-9 items-center justify-center rounded-full border border-dotted hover:bg-sidebar transition-colors sm:hidden">
-        <span className="t-icon-swap size-4" data-state={isDark ? "b" : "a"}>
-          <SunIcon className="t-icon size-4" data-icon="a" />
-          <MoonIcon className="t-icon size-4" data-icon="b" />
-        </span>
+      <span className="hover:bg-sidebar flex size-9 items-center justify-center rounded-full border border-dotted transition-colors sm:hidden">
+        <SunIcon className="size-4 dark:hidden" />
+        <MoonIcon className="hidden size-4 dark:block" />
       </span>
       <Badge
+        className="hover:bg-sidebar hidden h-auto items-center gap-2 border-dotted bg-transparent px-4 py-2 transition-colors sm:inline-flex"
         variant="outline"
-        className="hidden sm:inline-flex h-auto items-center gap-2 py-2 px-4 bg-transparent hover:bg-sidebar transition-colors border-dotted"
       >
-        <span className="t-icon-swap size-3.5" data-state={isDark ? "b" : "a"}>
-          <SunIcon className="t-icon size-3.5" data-icon="a" />
-          <MoonIcon className="t-icon size-3.5" data-icon="b" />
-        </span>
-        <span ref={textRef} className={cn("t-text-swap", animationClass)}>
-          {displayedText}
-        </span>
+        <SunIcon className="size-3.5 dark:hidden" />
+        <MoonIcon className="hidden size-3.5 dark:block" />
+        <span className="dark:hidden">Light</span>
+        <span className="hidden dark:inline">Dark</span>
       </Badge>
     </button>
   );

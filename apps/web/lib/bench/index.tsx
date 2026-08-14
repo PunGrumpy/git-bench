@@ -1,7 +1,7 @@
 import results from "@git-bench/bench/results.json";
 import Image from "next/image";
+import type { StaticImageData } from "next/image";
 
-import type { ChartConfig } from "@/components/ui/chart";
 import GitLogo from "@/public/git.png";
 import GitoxideLogo from "@/public/gitoxide.png";
 import IsomorphicGitLogo from "@/public/isomorphic-git.png";
@@ -65,55 +65,82 @@ export const BASELINE_RUNNER = "git-cli" as const satisfies RunnerId;
 
 export const CHANGE_THRESHOLD_PERCENT = 0.5;
 
-export const chartConfig = {
+/** How a runner reaches the repository, which is the axis that explains most of the spread. */
+export type RunnerBinding = "subprocess" | "in-process";
+
+export interface RunnerMeta {
+  readonly label: string;
+  /** Fits a phone-width table column, where the full label does not. */
+  readonly shortLabel: string;
+  readonly language: string;
+  readonly binding: RunnerBinding;
+  readonly url: string;
+  readonly logo: StaticImageData;
+  /** CSS custom property holding this runner's identity color. */
+  readonly color: string;
+}
+
+export const runnerMeta = {
   "git-cli": {
-    color: "hsl(24 95% 53%)",
-    icon: () => (
-      <Image alt="git CLI" className="size-3.5 rounded-full" src={GitLogo} />
-    ),
+    binding: "subprocess",
+    color: "var(--runner-git-cli)",
     label: "git CLI",
+    language: "C",
+    logo: GitLogo,
+    shortLabel: "git",
+    url: "https://git-scm.com",
   },
   gitoxide: {
-    color: "hsl(38 92% 50%)",
-    icon: () => (
-      <Image
-        alt="gitoxide"
-        className="size-3.5 rounded-full"
-        src={GitoxideLogo}
-      />
-    ),
+    binding: "subprocess",
+    color: "var(--runner-gitoxide)",
     label: "gitoxide",
+    language: "Rust",
+    logo: GitoxideLogo,
+    shortLabel: "gitoxide",
+    url: "https://github.com/GitoxideLabs/gitoxide",
   },
   "isomorphic-git": {
-    color: "hsl(142 71% 45%)",
-    icon: () => (
-      <Image
-        alt="isomorphic-git"
-        className="size-3.5 rounded-full"
-        src={IsomorphicGitLogo}
-      />
-    ),
+    binding: "in-process",
+    color: "var(--runner-isomorphic-git)",
     label: "isomorphic-git",
+    language: "JavaScript",
+    logo: IsomorphicGitLogo,
+    shortLabel: "iso-git",
+    url: "https://isomorphic-git.org",
   },
   "libgit2-ffi": {
-    color: "hsl(217 91% 60%)",
-    icon: () => (
-      <Image
-        alt="libgit2-ffi"
-        className="size-3.5 rounded-full"
-        src={Libgit2Logo}
-      />
-    ),
+    binding: "in-process",
+    color: "var(--runner-libgit2-ffi)",
     label: "bun:ffi + libgit2",
+    language: "C",
+    logo: Libgit2Logo,
+    shortLabel: "libgit2",
+    url: "https://libgit2.org",
   },
   ziggit: {
-    color: "hsl(258, 90%, 66%)",
-    icon: () => (
-      <Image alt="ziggit" className="size-3.5 rounded-full" src={ZiggitLogo} />
-    ),
+    binding: "subprocess",
+    color: "var(--runner-ziggit)",
     label: "ziggit",
+    language: "Zig",
+    logo: ZiggitLogo,
+    shortLabel: "ziggit",
+    url: "https://github.com/hdresearch/ziggit",
   },
-} satisfies ChartConfig;
+} as const satisfies Record<RunnerId, RunnerMeta>;
+
+interface RunnerLogoProps {
+  readonly runnerId: RunnerId;
+  readonly className?: string;
+}
+
+export const RunnerLogo = ({ className, runnerId }: RunnerLogoProps) => (
+  <Image
+    alt=""
+    aria-hidden
+    className={className ?? "size-3.5 shrink-0 rounded-full"}
+    src={runnerMeta[runnerId].logo}
+  />
+);
 
 export const findResult = (
   runner: RunnerId,

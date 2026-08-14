@@ -2,14 +2,14 @@ import { afterAll, describe, expect, it } from "bun:test";
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import path from "node:path";
 
 import { libgit2FfiRunner } from "./libgit2-ffi";
 import type { RunnerContext } from "./types";
 
 // A throwaway fixture repo outside the working tree, so the FFI runner is
 // exercised against real libgit2 rather than a mock.
-const repoDir = mkdtempSync(join(tmpdir(), "git-bench-libgit2-"));
+const repoDir = mkdtempSync(path.join(tmpdir(), "git-bench-libgit2-"));
 
 const git = (...args: string[]) =>
   execFileSync("git", args, { cwd: repoDir, encoding: "utf-8" });
@@ -28,7 +28,7 @@ const commit = (message: string) =>
   );
 
 const write = (name: string, contents: string) =>
-  writeFileSync(join(repoDir, name), contents);
+  writeFileSync(path.join(repoDir, name), contents);
 
 const A_TXT = "hello world\n";
 const B_TXT = "second file contents here\n";

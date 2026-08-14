@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { SVGProps } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -23,22 +24,27 @@ export const GitHubIcon = ({
 
 export const Header = () => (
   <div className="flex items-center justify-between">
-    <h1 className="flex items-center gap-2 font-semibold text-lg">Git Bench</h1>
+    <Link
+      className="flex items-center gap-2 text-lg font-semibold transition-opacity hover:opacity-80"
+      href="/"
+    >
+      Git Bench
+    </Link>
     <div className="flex items-center gap-2">
       <ThemeSwitcher />
       <a
-        className="text-muted-foreground transition-colors hover:text-foreground"
+        className="text-muted-foreground hover:text-foreground transition-colors"
         href="https://github.com/PunGrumpy/git-bench"
         rel="noreferrer"
         target="_blank"
         aria-label="PunGrumpy/git-bench on GitHub"
       >
-        <span className="flex size-9 items-center justify-center rounded-full border border-dotted hover:bg-sidebar transition-colors sm:hidden">
+        <span className="hover:bg-sidebar flex size-9 items-center justify-center rounded-full border border-dotted transition-colors sm:hidden">
           <GitHubIcon className="size-4" />
         </span>
         <Badge
           variant="outline"
-          className="hidden sm:inline-flex h-auto py-2 px-4 bg-transparent hover:bg-sidebar transition-colors border-dotted"
+          className="hover:bg-sidebar hidden h-auto border border-dotted bg-transparent px-4 py-2 transition-colors sm:inline-flex"
         >
           <GitHubIcon className="size-3.5" />
           PunGrumpy/git-bench

@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
 
-import { Results } from "@/components/sections/results";
+import { Frontier } from "@/components/sections/frontier";
+import { Hero } from "@/components/sections/hero";
+import { Leaderboard } from "@/components/sections/leaderboard";
+import { Matrix } from "@/components/sections/matrix";
+import { Methodology } from "@/components/sections/methodology";
+import { Operations } from "@/components/sections/operations";
 import { benchData } from "@/lib/bench";
 
 export const metadata: Metadata = {
@@ -12,115 +16,33 @@ export const metadata: Metadata = {
   title: "Git Bench",
 };
 
-const Home = () => (
-  <>
-    <div className="flex flex-col gap-2">
-      <p>
-        Benchmarking git client implementations on real-world repository
-        operations.
-      </p>
-      <p>
-        {benchData.operations.length} operations (
-        {benchData.operations.map((o) => o.label.toLowerCase()).join(", ")})
-        executed across {benchData.runners.length} runners:{" "}
-        <a
-          href="https://git-scm.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
-        >
-          git CLI
-        </a>
-        ,{" "}
-        <a
-          href="https://libgit2.org"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
-        >
-          libgit2
-        </a>{" "}
-        via{" "}
-        <a
-          href="https://bun.sh/docs/api/ffi"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
-        >
-          bun:ffi
-        </a>
-        ,{" "}
-        <a
-          href="https://github.com/GitoxideLabs/gitoxide"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
-        >
-          gitoxide
-        </a>
-        ,{" "}
-        <a
-          href="https://isomorphic-git.org"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
-        >
-          isomorphic-git
-        </a>
-        , and{" "}
-        <a
-          href="https://github.com/hdresearch/ziggit"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
-        >
-          ziggit
-        </a>
-        .
-      </p>
-      <p>
-        The target is a full clone of{" "}
-        <a
-          href={benchData.repo.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
-        >
-          {benchData.repo.url
-            .replace(".git", "")
-            .replace("https://github.com/", "")}
-        </a>
-        . Each operation is timed across multiple samples; the median is
-        reported.
-      </p>
-      <p>
-        Last benchmarked: <em>{benchData.lastBenchmarked ?? "not yet run"}</em>{" "}
-        at{" "}
-        <a
-          href={`${benchData.repo.url}/commit/${benchData.repo.sha}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
-        >
-          <code className="font-mono">{benchData.repo.shortSha}</code>
-        </a>
-        .{" "}
-        <a
-          href="https://github.com/PunGrumpy/git-bench#readme"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline decoration-muted-foreground/40 underline-offset-[3px] decoration-dotted decoration-1 hover:decoration-muted-foreground"
-        >
-          Source &amp; methodology
-        </a>
-        .
-      </p>
+const EmptyResults = () => (
+  <section className="border-t border-dotted pt-6">
+    <p className="text-muted-foreground text-sm">
+      No results yet. Run{" "}
+      <code className="border-border bg-muted rounded border px-1 py-0.5 font-mono text-xs">
+        bun run bench
+      </code>{" "}
+      after cloning the benchmark repository to populate this page.
+    </p>
+  </section>
+);
 
-      <Suspense>
-        <Results />
-      </Suspense>
-    </div>
-  </>
+const Home = () => (
+  <div className="flex flex-col gap-12">
+    <Hero />
+    {benchData.results.length > 0 ? (
+      <>
+        <Leaderboard />
+        <Operations />
+        <Frontier />
+        <Matrix />
+      </>
+    ) : (
+      <EmptyResults />
+    )}
+    <Methodology />
+  </div>
 );
 
 export default Home;

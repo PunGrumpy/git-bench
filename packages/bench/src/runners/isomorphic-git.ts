@@ -1,3 +1,6 @@
+/* oxlint-disable no-await-in-loop -- Blobs are read one at a time on
+   purpose: this runner is being timed, and issuing the reads in parallel
+   would measure concurrency rather than the operation. */
 import fs from "node:fs";
 
 import type { OperationId, Runner, RunnerContext } from "./types";

@@ -52,7 +52,7 @@ interface RootLayoutProps {
 }
 
 const RootLayout = ({ children }: RootLayoutProps) => (
-  <html lang="en" suppressHydrationWarning>
+  <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
     <head>
       <script id="json-ld-website" type="application/ld+json">
         {escapeJsonForHtml(JSON.stringify(jsonLd))}
@@ -61,14 +61,11 @@ const RootLayout = ({ children }: RootLayoutProps) => (
 
     <body className={fonts}>
       <DesignSystemProvider>
-        <div className="relative isolate flex min-h-dvh flex-col bg-background">
-          <div className="mx-auto w-full max-w-7xl flex-1 lg:grid lg:grid-cols-[1fr_42rem_1fr]">
-            <div aria-hidden className="hidden lg:block" />
-            <main className="mx-auto w-full px-4 sm:px-8 py-8 flex flex-col gap-12">
-              <Header />
-              <div className="flex flex-1 flex-col gap-12">{children}</div>
-              <Footer />
-            </main>
+        <div className="bg-background relative isolate flex min-h-dvh flex-col">
+          <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-12 px-4 py-8 sm:px-8">
+            <Header />
+            <main className="flex flex-1 flex-col">{children}</main>
+            <Footer />
           </div>
         </div>
       </DesignSystemProvider>

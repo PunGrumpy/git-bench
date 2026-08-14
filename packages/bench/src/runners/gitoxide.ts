@@ -8,7 +8,7 @@ import { createCliRunner, lines } from "./cli-runner";
 // Branch names may contain "/", and paths may contain spaces, so anchor on the
 // trailing bracket. The benchmark repo is a fresh single-worktree clone, so the
 // first line is ours; the warmup parity check flags it if that ever changes.
-const BRANCH_IN_BRACKETS = /\[(.+)\]$/u;
+const BRANCH_IN_BRACKETS = /\[(?<branch>.+)\]$/u;
 
 const parseCurrentBranch = (out: string) => {
   const [line] = out.split("\n");
@@ -18,7 +18,7 @@ const parseCurrentBranch = (out: string) => {
       `gix worktree list: could not read a branch name from ${JSON.stringify(line ?? "")}`
     );
   }
-  return match[1];
+  return match.groups?.branch ?? "";
 };
 
 export const gitoxideRunner = createCliRunner({
