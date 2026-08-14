@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 
-import { BASELINE_RUNNER, RunnerLogo, runnerMeta } from "@/lib/bench";
+import { RunnerLogo } from "@/components/runner-logo";
+import { BASELINE_RUNNER, runnerMeta } from "@/lib/bench";
 import type { RunnerScore } from "@/lib/bench/metrics";
 import {
   formatRatio,

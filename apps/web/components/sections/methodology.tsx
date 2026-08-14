@@ -1,10 +1,6 @@
-import { benchData } from "@/lib/bench";
+import { benchData, repoCommitUrl, repoName } from "@/lib/bench";
 
 const samples = benchData.results[0]?.samples ?? 0;
-
-const repoName = benchData.repo.url
-  .replace(".git", "")
-  .replace("https://github.com/", "");
 
 const REPO = "https://github.com/PunGrumpy/git-bench";
 
@@ -32,7 +28,7 @@ export const Methodology = () => (
       Run {benchData.lastBenchmarked ?? "not yet recorded"} against{" "}
       <a
         className={linkClass}
-        href={`${benchData.repo.url}/commit/${benchData.repo.sha}`}
+        href={repoCommitUrl}
         rel="noreferrer"
         target="_blank"
       >

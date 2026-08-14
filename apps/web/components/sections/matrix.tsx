@@ -1,11 +1,10 @@
 "use client";
 
 import { formatBenchError } from "@git-bench/bench/format-error";
-import type { AudioManifest } from "@joycostudio/suno";
-import { useSuno, useUnlock } from "@joycostudio/suno/react";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import { useState } from "react";
 
+import { RunnerLogo } from "@/components/runner-logo";
 import { SegmentedControl } from "@/components/segmented-control";
 import {
   Collapsible,
@@ -28,11 +27,11 @@ import {
   BASELINE_RUNNER,
   benchData,
   findResult,
-  RunnerLogo,
   runnerMeta,
 } from "@/lib/bench";
 import type { BenchOperation, OperationId, RunnerId } from "@/lib/bench";
 import { formatRatio } from "@/lib/bench/metrics";
+import { sfx } from "@/lib/sfx";
 import { cn, formatMs } from "@/lib/utils";
 
 type Unit = "ms" | "ratio";
@@ -146,25 +145,11 @@ const ErrorCell = ({
 };
 
 export const Matrix = () => {
-  const suno = useSuno<AudioManifest>();
-  const { unlock, unlocked } = useUnlock();
   const [unit, setUnit] = useState<Unit>("ms");
   const [sort, setSort] = useState<Sort>(null);
 
-  const click = async () => {
-    try {
-      if (!unlocked) {
-        await unlock();
-      }
-      const source = await suno.load("click");
-      source.play();
-    } catch {
-      // Audio is a garnish; a blocked or missing sound never blocks the UI.
-    }
-  };
-
   const toggleSort = (runnerId: RunnerId) => {
-    click();
+    sfx.play("press");
     setSort((current) => {
       if (current?.runnerId !== runnerId) {
         return { direction: "asc", runnerId };
@@ -176,7 +161,7 @@ export const Matrix = () => {
   };
 
   const selectUnit = (next: Unit) => {
-    click();
+    sfx.play("select");
     setUnit(next);
   };
 

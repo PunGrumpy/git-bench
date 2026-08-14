@@ -1,6 +1,12 @@
 import { ArrowUpRightIcon } from "lucide-react";
 
-import { BASELINE_RUNNER, benchData, runnerMeta } from "@/lib/bench";
+import {
+  BASELINE_RUNNER,
+  benchData,
+  repoName,
+  repoWebUrl,
+  runnerMeta,
+} from "@/lib/bench";
 import {
   fastestRunner,
   formatSpeedup,
@@ -10,10 +16,6 @@ import {
 const samples = benchData.results[0]?.samples ?? 0;
 
 const activeRunners = benchData.runners.filter((runner) => !runner.comingSoon);
-
-const repoName = benchData.repo.url
-  .replace(".git", "")
-  .replace("https://github.com/", "");
 
 const NUMBER_WORDS = [
   "zero",
@@ -66,7 +68,7 @@ export const Hero = () => {
           Every runner is held to the same work contract on a full clone of{" "}
           <a
             className="text-foreground decoration-muted-foreground/40 hover:decoration-muted-foreground underline decoration-dotted decoration-1 underline-offset-[3px] transition-colors"
-            href={benchData.repo.url}
+            href={repoWebUrl}
             rel="noreferrer"
             target="_blank"
           >
