@@ -4,6 +4,7 @@ import { formatBenchError } from "@git-bench/bench/format-error";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 import { useState } from "react";
 
+import { RunnerLogo } from "@/components/runner-logo";
 import { SegmentedControl } from "@/components/segmented-control";
 import {
   Collapsible,
@@ -26,7 +27,6 @@ import {
   BASELINE_RUNNER,
   benchData,
   findResult,
-  RunnerLogo,
   runnerMeta,
 } from "@/lib/bench";
 import type { BenchOperation, OperationId, RunnerId } from "@/lib/bench";

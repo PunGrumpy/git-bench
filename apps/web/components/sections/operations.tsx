@@ -1,7 +1,8 @@
 import { ArrowRightIcon } from "lucide-react";
 import type { CSSProperties } from "react";
 
-import { benchData, findResult, RunnerLogo } from "@/lib/bench";
+import { RunnerLogo } from "@/components/runner-logo";
+import { benchData, findResult } from "@/lib/bench";
 import type { BenchOperation, RunnerId } from "@/lib/bench";
 import { formatRatio } from "@/lib/bench/metrics";
 import { heatAt, logProgress } from "@/lib/heat";

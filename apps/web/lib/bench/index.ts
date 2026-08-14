@@ -1,5 +1,4 @@
 import results from "@git-bench/bench/results.json";
-import Image from "next/image";
 import type { StaticImageData } from "next/image";
 
 import GitLogo from "@/public/git.png";
@@ -62,6 +61,16 @@ export interface BenchData {
 export const benchData = results as BenchData;
 
 export const BASELINE_RUNNER = "git-cli" as const satisfies RunnerId;
+
+/**
+ * The benchmark clones from a `.git` URL, which GitHub redirects for the repo
+ * root but 404s for anything under it, so the browser gets it stripped.
+ */
+export const repoWebUrl = benchData.repo.url.replace(/\.git$/u, "");
+
+export const repoName = repoWebUrl.replace("https://github.com/", "");
+
+export const repoCommitUrl = `${repoWebUrl}/commit/${benchData.repo.sha}`;
 
 export const CHANGE_THRESHOLD_PERCENT = 0.5;
 
@@ -127,20 +136,6 @@ export const runnerMeta = {
     url: "https://github.com/hdresearch/ziggit",
   },
 } as const satisfies Record<RunnerId, RunnerMeta>;
-
-interface RunnerLogoProps {
-  readonly runnerId: RunnerId;
-  readonly className?: string;
-}
-
-export const RunnerLogo = ({ className, runnerId }: RunnerLogoProps) => (
-  <Image
-    alt=""
-    aria-hidden
-    className={className ?? "size-3.5 shrink-0 rounded-full"}
-    src={runnerMeta[runnerId].logo}
-  />
-);
 
 export const findResult = (
   runner: RunnerId,
