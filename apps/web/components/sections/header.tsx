@@ -3,6 +3,7 @@ import type { SVGProps } from "react";
 
 import { Badge } from "@/components/ui/badge";
 
+import { SoundSwitcher } from "./sound-switcher";
 import { ThemeSwitcher } from "./theme-switcher";
 
 export const GitHubIcon = ({
@@ -31,6 +32,7 @@ export const Header = () => (
       Git Bench
     </Link>
     <div className="flex items-center gap-2">
+      <SoundSwitcher />
       <ThemeSwitcher />
       <a
         className="text-muted-foreground hover:text-foreground transition-colors"

@@ -1,11 +1,10 @@
 "use client";
 
-import type { AudioManifest } from "@joycostudio/suno";
-import { useSuno, useUnlock } from "@joycostudio/suno/react";
 import { useTheme } from "next-themes";
 import type { SVGProps } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { sfx } from "@/lib/sfx";
 
 export const SunIcon = ({ className, ...props }: SVGProps<SVGSVGElement>) => (
   <svg
@@ -48,24 +47,12 @@ export const MoonIcon = ({ className, ...props }: SVGProps<SVGSVGElement>) => (
 );
 
 export const ThemeSwitcher = () => {
-  const suno = useSuno<AudioManifest>();
-  const { unlock, unlocked } = useUnlock();
   const { resolvedTheme, setTheme } = useTheme();
 
   const handleToggle = () => {
-    const playAudio = async () => {
-      try {
-        if (!unlocked) {
-          await unlock();
-        }
-        const source = await suno.load("click");
-        source.play();
-      } catch {
-        // Audio is a garnish; a blocked or missing sound never blocks the UI.
-      }
-    };
-    playAudio();
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
+    const next = resolvedTheme === "dark" ? "light" : "dark";
+    sfx.play(next === "dark" ? "toggle-off" : "toggle-on");
+    setTheme(next);
   };
 
   // Which theme is active is read off the `dark` class rather than React state,

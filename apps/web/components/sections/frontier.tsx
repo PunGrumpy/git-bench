@@ -1,7 +1,5 @@
 "use client";
 
-import type { AudioManifest } from "@joycostudio/suno";
-import { useSuno, useUnlock } from "@joycostudio/suno/react";
 import type { CSSProperties } from "react";
 import { useState } from "react";
 
@@ -10,6 +8,7 @@ import { BASELINE_RUNNER, runnerMeta } from "@/lib/bench";
 import type { RunnerBinding, RunnerId } from "@/lib/bench";
 import type { RunnerScore } from "@/lib/bench/metrics";
 import { formatRatio, runnerScores } from "@/lib/bench/metrics";
+import { sfx } from "@/lib/sfx";
 import { cn } from "@/lib/utils";
 
 type XMetric = "spread" | "worst";
@@ -32,6 +31,11 @@ interface Point {
   readonly y: number;
   readonly left: number;
   readonly top: number;
+}
+
+interface Domain {
+  max: number;
+  min: number;
 }
 
 const decadeCeil = (value: number) => 10 ** Math.ceil(Math.log10(value));
@@ -102,27 +106,234 @@ const Marker = ({
     </svg>
   );
 
+interface PlotProps {
+  readonly shown: readonly Point[];
+  readonly activePoint: Point | undefined;
+  readonly trails: readonly { binding: RunnerBinding; path: Point[] }[];
+  readonly xDomain: Domain;
+  readonly yDomain: Domain;
+  readonly xTicks: readonly number[];
+  readonly yTicks: readonly number[];
+  readonly metric: XMetric;
+  readonly onActivate: (runnerId: RunnerId | null) => void;
+}
+
+/** The plot itself, kept apart from the controls that drive it. */
+const Plot = ({
+  activePoint,
+  metric,
+  onActivate,
+  shown,
+  trails,
+  xDomain,
+  xTicks,
+  yDomain,
+  yTicks,
+}: PlotProps) => (
+  <figure className="flex min-w-0 flex-col gap-2">
+    <div className="flex gap-2">
+      <div
+        aria-hidden
+        className="text-muted-foreground flex w-12 shrink-0 flex-col justify-between text-right text-xs tabular-nums"
+      >
+        {[...yTicks].toReversed().map((tick) => (
+          <span
+            className={cn(
+              activePoint &&
+                Math.abs(100 - positionIn(tick, yDomain) - activePoint.top) <
+                  6 &&
+                "opacity-0"
+            )}
+            key={tick}
+          >
+            {formatRatio(tick)}
+          </span>
+        ))}
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <div className="relative h-64 border border-dotted">
+          {xTicks.map((tick) => (
+            <span
+              aria-hidden
+              className={cn(
+                "absolute inset-y-0 border-l border-dotted",
+                tick === 1 ? "border-muted-foreground/50" : "border-border"
+              )}
+              key={tick}
+              style={{ left: `${positionIn(tick, xDomain)}%` }}
+            />
+          ))}
+          {yTicks.map((tick) => (
+            <span
+              aria-hidden
+              className={cn(
+                "absolute inset-x-0 border-t border-dotted",
+                tick === 1 ? "border-muted-foreground/50" : "border-border"
+              )}
+              key={tick}
+              style={{ top: `${100 - positionIn(tick, yDomain)}%` }}
+            />
+          ))}
+
+          <svg
+            aria-hidden
+            className="text-muted-foreground/45 absolute inset-0 size-full"
+            preserveAspectRatio="none"
+            viewBox="0 0 100 100"
+          >
+            <title>Runners joined by binding</title>
+            {trails.map((trail) => (
+              <polyline
+                fill="none"
+                key={trail.binding}
+                points={trail.path
+                  .map((point) => `${point.left},${point.top}`)
+                  .join(" ")}
+                stroke="currentColor"
+                strokeDasharray="2 2"
+                strokeWidth={1}
+                vectorEffect="non-scaling-stroke"
+              />
+            ))}
+          </svg>
+
+          {activePoint && (
+            <>
+              <span
+                aria-hidden
+                className="bg-foreground/25 absolute inset-y-0 w-px"
+                style={{ left: `${activePoint.left}%` }}
+              />
+              <span
+                aria-hidden
+                className="bg-foreground/25 absolute inset-x-0 h-px"
+                style={{ top: `${activePoint.top}%` }}
+              />
+              <span
+                aria-hidden
+                className="bg-background absolute -left-12 w-12 -translate-y-1/2 pr-2 text-right text-xs font-medium tabular-nums"
+                style={{ top: `${activePoint.top}%` }}
+              >
+                {formatRatio(activePoint.y)}
+              </span>
+            </>
+          )}
+
+          <span
+            aria-hidden
+            className="text-muted-foreground absolute right-2 bottom-1.5 text-[11px] italic"
+          >
+            fast and predictable ↙
+          </span>
+
+          {shown.map((point) => {
+            const meta = runnerMeta[point.score.runnerId];
+            const isActive =
+              activePoint?.score.runnerId === point.score.runnerId;
+            const flip = point.left > 62;
+
+            return (
+              <button
+                className={cn(
+                  "absolute flex -translate-y-1/2 items-center gap-1.5 transition-opacity",
+                  flip
+                    ? "-translate-x-[calc(100%-0.3rem)] flex-row-reverse"
+                    : "-translate-x-1.5",
+                  activePoint && !isActive && "opacity-30"
+                )}
+                key={point.score.runnerId}
+                onBlur={() => onActivate(null)}
+                onFocus={() => onActivate(point.score.runnerId)}
+                onMouseEnter={() => onActivate(point.score.runnerId)}
+                onMouseLeave={() => onActivate(null)}
+                style={vars(
+                  { left: `${point.left}%`, top: `${point.top}%` },
+                  { "--row-c": meta.color }
+                )}
+                type="button"
+              >
+                <Marker
+                  binding={meta.binding}
+                  className="size-2.5 shrink-0 text-(--row-c)"
+                />
+                <span
+                  className={cn(
+                    "text-[11px] whitespace-nowrap",
+                    isActive || point.score.runnerId === BASELINE_RUNNER
+                      ? "text-foreground"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  {meta.label}
+                </span>
+                <span className="sr-only">
+                  score {formatRatio(point.y)},{" "}
+                  {metric === "spread" ? "spread" : "worst operation"}{" "}
+                  {formatRatio(point.x)}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div
+          aria-hidden
+          className="text-muted-foreground relative mt-1 h-4 text-xs tabular-nums"
+        >
+          {xTicks.map((tick) => {
+            const at = positionIn(tick, xDomain);
+            return (
+              <span
+                className={cn(
+                  "absolute",
+                  tickOffset(at),
+                  activePoint &&
+                    Math.abs(at - activePoint.left) < 8 &&
+                    "opacity-0"
+                )}
+                key={tick}
+                style={{ left: `${at}%` }}
+              >
+                {formatRatio(tick)}
+              </span>
+            );
+          })}
+          {activePoint && (
+            <span
+              className="bg-background text-foreground absolute top-0 -translate-x-1/2 px-1 font-medium whitespace-nowrap"
+              style={{ left: `${activePoint.left}%` }}
+            >
+              {formatRatio(activePoint.x)}
+            </span>
+          )}
+        </div>
+
+        <p
+          aria-hidden
+          className="text-muted-foreground mt-2 text-center text-xs"
+        >
+          {metric === "spread"
+            ? "spread — worst operation ÷ best"
+            : "worst single operation (×git CLI)"}
+        </p>
+      </div>
+    </div>
+
+    <figcaption className="text-muted-foreground text-xs leading-relaxed">
+      Score, lower is faster, against{" "}
+      {metric === "spread"
+        ? "how far the same runner drifts between its best and worst operation"
+        : "its worst single operation"}
+      . Both axes logarithmic; the brighter lines mark parity with git.
+    </figcaption>
+  </figure>
+);
+
 export const Frontier = () => {
-  const suno = useSuno<AudioManifest>();
-  const { unlock, unlocked } = useUnlock();
   const [metric, setMetric] = useState<XMetric>("spread");
   const [group, setGroup] = useState<GroupFilter>("all");
   const [active, setActive] = useState<RunnerId | null>(null);
-
-  const click = () => {
-    const playAudio = async () => {
-      try {
-        if (!unlocked) {
-          await unlock();
-        }
-        const source = await suno.load("click");
-        source.play();
-      } catch {
-        // Audio is a garnish; a blocked or missing sound never blocks the UI.
-      }
-    };
-    playAudio();
-  };
 
   const measured = runnerScores.flatMap((score) => {
     const x = xValue(score, metric);
@@ -165,7 +376,7 @@ export const Frontier = () => {
         <SegmentedControl
           label="Horizontal axis"
           onChange={(next: XMetric) => {
-            click();
+            sfx.play("select");
             setMetric(next);
           }}
           options={X_METRICS}
@@ -185,7 +396,7 @@ export const Frontier = () => {
             )}
             key={option.value}
             onClick={() => {
-              click();
+              sfx.play("select");
               setGroup(option.value);
             }}
             type="button"
@@ -199,208 +410,17 @@ export const Frontier = () => {
       </div>
 
       <div className="grid gap-x-8 gap-y-4 lg:grid-cols-[minmax(0,1fr)_11rem]">
-        <figure className="flex min-w-0 flex-col gap-2">
-          <div className="flex gap-2">
-            <div
-              aria-hidden
-              className="text-muted-foreground flex w-12 shrink-0 flex-col justify-between text-right text-xs tabular-nums"
-            >
-              {[...yTicks].toReversed().map((tick) => (
-                <span
-                  className={cn(
-                    activePoint &&
-                      Math.abs(
-                        100 - positionIn(tick, yDomain) - activePoint.top
-                      ) < 6 &&
-                      "opacity-0"
-                  )}
-                  key={tick}
-                >
-                  {formatRatio(tick)}
-                </span>
-              ))}
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <div className="relative h-64 border border-dotted">
-                {xTicks.map((tick) => (
-                  <span
-                    aria-hidden
-                    className={cn(
-                      "absolute inset-y-0 border-l border-dotted",
-                      tick === 1
-                        ? "border-muted-foreground/50"
-                        : "border-border"
-                    )}
-                    key={tick}
-                    style={{ left: `${positionIn(tick, xDomain)}%` }}
-                  />
-                ))}
-                {yTicks.map((tick) => (
-                  <span
-                    aria-hidden
-                    className={cn(
-                      "absolute inset-x-0 border-t border-dotted",
-                      tick === 1
-                        ? "border-muted-foreground/50"
-                        : "border-border"
-                    )}
-                    key={tick}
-                    style={{ top: `${100 - positionIn(tick, yDomain)}%` }}
-                  />
-                ))}
-
-                <svg
-                  aria-hidden
-                  className="text-muted-foreground/45 absolute inset-0 size-full"
-                  preserveAspectRatio="none"
-                  viewBox="0 0 100 100"
-                >
-                  <title>Runners joined by binding</title>
-                  {trails.map((trail) => (
-                    <polyline
-                      fill="none"
-                      key={trail.binding}
-                      points={trail.path
-                        .map((point) => `${point.left},${point.top}`)
-                        .join(" ")}
-                      stroke="currentColor"
-                      strokeDasharray="2 2"
-                      strokeWidth={1}
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  ))}
-                </svg>
-
-                {activePoint && (
-                  <>
-                    <span
-                      aria-hidden
-                      className="bg-foreground/25 absolute inset-y-0 w-px"
-                      style={{ left: `${activePoint.left}%` }}
-                    />
-                    <span
-                      aria-hidden
-                      className="bg-foreground/25 absolute inset-x-0 h-px"
-                      style={{ top: `${activePoint.top}%` }}
-                    />
-                    <span
-                      aria-hidden
-                      className="bg-background absolute -left-12 w-12 -translate-y-1/2 pr-2 text-right text-xs font-medium tabular-nums"
-                      style={{ top: `${activePoint.top}%` }}
-                    >
-                      {formatRatio(activePoint.y)}
-                    </span>
-                  </>
-                )}
-
-                <span
-                  aria-hidden
-                  className="text-muted-foreground absolute right-2 bottom-1.5 text-[11px] italic"
-                >
-                  fast and predictable ↙
-                </span>
-
-                {shown.map((point) => {
-                  const meta = runnerMeta[point.score.runnerId];
-                  const isActive = active === point.score.runnerId;
-                  const flip = point.left > 62;
-
-                  return (
-                    <button
-                      className={cn(
-                        "absolute flex -translate-y-1/2 items-center gap-1.5 transition-opacity",
-                        flip
-                          ? "-translate-x-[calc(100%-0.3rem)] flex-row-reverse"
-                          : "-translate-x-1.5",
-                        active && !isActive && "opacity-30"
-                      )}
-                      key={point.score.runnerId}
-                      onBlur={() => setActive(null)}
-                      onFocus={() => setActive(point.score.runnerId)}
-                      onMouseEnter={() => setActive(point.score.runnerId)}
-                      onMouseLeave={() => setActive(null)}
-                      style={vars(
-                        { left: `${point.left}%`, top: `${point.top}%` },
-                        { "--row-c": meta.color }
-                      )}
-                      type="button"
-                    >
-                      <Marker
-                        binding={meta.binding}
-                        className="size-2.5 shrink-0 text-(--row-c)"
-                      />
-                      <span
-                        className={cn(
-                          "text-[11px] whitespace-nowrap",
-                          isActive || point.score.runnerId === BASELINE_RUNNER
-                            ? "text-foreground"
-                            : "text-muted-foreground"
-                        )}
-                      >
-                        {meta.label}
-                      </span>
-                      <span className="sr-only">
-                        score {formatRatio(point.y)},{" "}
-                        {metric === "spread" ? "spread" : "worst operation"}{" "}
-                        {formatRatio(point.x)}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div
-                aria-hidden
-                className="text-muted-foreground relative mt-1 h-4 text-xs tabular-nums"
-              >
-                {xTicks.map((tick) => {
-                  const at = positionIn(tick, xDomain);
-                  return (
-                    <span
-                      className={cn(
-                        "absolute",
-                        tickOffset(at),
-                        activePoint &&
-                          Math.abs(at - activePoint.left) < 8 &&
-                          "opacity-0"
-                      )}
-                      key={tick}
-                      style={{ left: `${at}%` }}
-                    >
-                      {formatRatio(tick)}
-                    </span>
-                  );
-                })}
-                {activePoint && (
-                  <span
-                    className="bg-background text-foreground absolute top-0 -translate-x-1/2 px-1 font-medium whitespace-nowrap"
-                    style={{ left: `${activePoint.left}%` }}
-                  >
-                    {formatRatio(activePoint.x)}
-                  </span>
-                )}
-              </div>
-
-              <p
-                aria-hidden
-                className="text-muted-foreground mt-2 text-center text-xs"
-              >
-                {metric === "spread"
-                  ? "spread — worst operation ÷ best"
-                  : "worst single operation (×git CLI)"}
-              </p>
-            </div>
-          </div>
-
-          <figcaption className="text-muted-foreground text-xs leading-relaxed">
-            Score, lower is faster, against{" "}
-            {metric === "spread"
-              ? "how far the same runner drifts between its best and worst operation"
-              : "its worst single operation"}
-            . Both axes logarithmic; the brighter lines mark parity with git.
-          </figcaption>
-        </figure>
+        <Plot
+          activePoint={activePoint}
+          metric={metric}
+          onActivate={setActive}
+          shown={shown}
+          trails={trails}
+          xDomain={xDomain}
+          xTicks={xTicks}
+          yDomain={yDomain}
+          yTicks={yTicks}
+        />
 
         <dl className="text-muted-foreground flex flex-col gap-3 text-xs leading-relaxed italic">
           <div>
