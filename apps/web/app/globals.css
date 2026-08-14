@@ -79,35 +79,35 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 
+  /* Runner identity colors. Distinct hues so five series stay separable, and
+     always paired with a logo and a text label so color is never the only cue. */
+  --runner-git-cli: oklch(0.62 0.19 35);
+  --runner-libgit2-ffi: oklch(0.58 0.17 255);
+  --runner-gitoxide: oklch(0.65 0.15 95);
+  --runner-isomorphic-git: oklch(0.6 0.15 155);
+  --runner-ziggit: oklch(0.56 0.2 295);
+
+  /* Heat ramp, six stops interpolated pairwise like reactbench's --hm-r*.
+     Lightness is held near-constant inside a theme so hue carries the scale
+     and a value drawn in any stop keeps the same contrast against the page. */
+  --hm-r0: oklch(0.56 0.09 250);
+  --hm-r1: oklch(0.55 0.13 300);
+  --hm-r2: oklch(0.54 0.18 350);
+  --hm-r3: oklch(0.54 0.17 30);
+  --hm-r4: oklch(0.55 0.14 65);
+  --hm-r5: oklch(0.52 0.13 95);
+
+  /* Heat tints for the results matrix, kept faint enough to sit under text. */
+  --heat-fast: oklch(0.72 0.13 155);
+  --heat-slow: oklch(0.68 0.16 25);
+
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
 
-  /* Text states swap */
-  --text-swap-dur: 150ms;
-  --text-swap-translate-y: 4px;
-  --text-swap-blur: 2px;
-  --text-swap-ease: ease-in-out;
-
-  /* Menu dropdown */
-  --dropdown-open-dur: 250ms;
-  --dropdown-close-dur: 150ms;
-  --dropdown-pre-scale: 0.97;
-  --dropdown-closing-scale: 0.99;
-  --dropdown-ease: cubic-bezier(0.22, 1, 0.36, 1);
-
-  /* Icon swap */
-  --icon-swap-dur: 250ms;
-  --icon-swap-blur: 2px;
-  --icon-swap-start-scale: 0.25;
-  --icon-swap-ease: ease-in-out;
-
-  /* Tabs sliding */
-  --tabs-dur: 250ms;
-  --tabs-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --tabs-text-muted: var(--muted-foreground);
-  --tabs-text-active: var(--foreground);
-  --tabs-bar-bg: var(--muted);
-  --tabs-pill-bg: var(--background);
+  /* Global Scrollbar Colors */
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: oklch(0.8 0 0);
+  --scrollbar-thumb-hover: oklch(0.65 0 0);
 }
 
 .dark {
@@ -142,6 +142,26 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  --runner-git-cli: oklch(0.72 0.17 35);
+  --runner-libgit2-ffi: oklch(0.7 0.15 255);
+  --runner-gitoxide: oklch(0.79 0.14 95);
+  --runner-isomorphic-git: oklch(0.74 0.14 155);
+  --runner-ziggit: oklch(0.7 0.17 295);
+
+  --heat-fast: oklch(0.78 0.13 155);
+  --heat-slow: oklch(0.72 0.16 25);
+
+  --hm-r0: oklch(0.78 0.08 250);
+  --hm-r1: oklch(0.78 0.11 300);
+  --hm-r2: oklch(0.78 0.14 350);
+  --hm-r3: oklch(0.8 0.14 40);
+  --hm-r4: oklch(0.84 0.13 75);
+  --hm-r5: oklch(0.88 0.14 100);
+
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: oklch(0.3 0 0);
+  --scrollbar-thumb-hover: oklch(0.45 0 0);
 }
 
 /* This layer is by Verno Studio */
@@ -161,6 +181,7 @@
   html {
     font-feature-settings: "ss01";
     text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
   }
   body {
     @apply min-h-dvh;
@@ -184,7 +205,7 @@
   input:focus,
   textarea:focus,
   a:focus {
-    @apply focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+    @apply focus-visible:ring-primary focus-visible:ring-offset-background focus-visible:ring-1 focus-visible:ring-offset-2 focus-visible:outline-none;
   }
   @media (prefers-reduced-motion: reduce) {
     *,
@@ -198,162 +219,70 @@
   }
 }
 
-@utility scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
 
-  &::-webkit-scrollbar {
-    display: none;
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: 9999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+  }
+  ::-webkit-scrollbar-corner {
+    background: transparent;
   }
 }
 
-/* Transitions.dev Classes */
-
-/* 1. Text states swap */
-.t-text-swap {
-  display: inline-block;
-  transform: translateY(0);
-  filter: blur(0);
-  opacity: 1;
-  transition:
-    transform var(--text-swap-dur) var(--text-swap-ease),
-    filter var(--text-swap-dur) var(--text-swap-ease),
-    opacity var(--text-swap-dur) var(--text-swap-ease);
-  will-change: transform, filter, opacity;
-}
-.t-text-swap.is-exit {
-  transform: translateY(calc(var(--text-swap-translate-y) * -1));
-  filter: blur(var(--text-swap-blur));
-  opacity: 0;
-}
-.t-text-swap.is-enter-start {
-  transform: translateY(var(--text-swap-translate-y));
-  filter: blur(var(--text-swap-blur));
-  opacity: 0;
-  transition: none;
+/* Leaderboard bars. The bar grows from its own left edge and the whisker caps
+   fade in behind it, staggered per row so the ranking reads top-down. */
+@keyframes bar-grow-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 
-/* 2. Menu dropdown */
-.t-dropdown {
-  transform-origin: top left;
-  transform: scale(var(--dropdown-pre-scale));
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    transform var(--dropdown-open-dur) var(--dropdown-ease),
-    opacity var(--dropdown-open-dur) var(--dropdown-ease);
-  will-change: transform, opacity;
-}
-.t-dropdown[data-origin="top-right"] {
-  transform-origin: top right;
-}
-.t-dropdown[data-origin="top-center"] {
-  transform-origin: top center;
-}
-.t-dropdown[data-origin="bottom-left"] {
-  transform-origin: bottom left;
-}
-.t-dropdown[data-origin="bottom-center"] {
-  transform-origin: bottom center;
-}
-.t-dropdown[data-origin="bottom-right"] {
-  transform-origin: bottom right;
+@keyframes bar-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.t-dropdown.is-open,
-.t-dropdown[data-state="open"] {
-  transform: scale(1);
-  opacity: 1;
-  pointer-events: auto;
-}
-.t-dropdown.is-closing,
-.t-dropdown[data-state="closed"] {
-  transform: scale(var(--dropdown-closing-scale));
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    transform var(--dropdown-close-dur) var(--dropdown-ease),
-    opacity var(--dropdown-close-dur) var(--dropdown-ease);
+.bar-grow-x {
+  animation: bar-grow-x 500ms var(--ease-out-strong) both;
+  animation-delay: var(--grow-delay, 0ms);
+  transform-origin: left center;
 }
 
-/* 3. Icon swap */
-.t-icon-swap {
-  position: relative;
-  display: inline-grid;
-}
-.t-icon-swap .t-icon {
-  grid-area: 1 / 1;
-  transition:
-    opacity var(--icon-swap-dur) var(--icon-swap-ease),
-    filter var(--icon-swap-dur) var(--icon-swap-ease),
-    transform var(--icon-swap-dur) var(--icon-swap-ease);
-  will-change: opacity, filter, transform;
-}
-.t-icon-swap[data-state="a"] .t-icon[data-icon="a"],
-.t-icon-swap[data-state="b"] .t-icon[data-icon="b"] {
-  opacity: 1;
-  filter: blur(0);
-  transform: scale(1);
-}
-.t-icon-swap[data-state="a"] .t-icon[data-icon="b"],
-.t-icon-swap[data-state="b"] .t-icon[data-icon="a"] {
-  opacity: 0;
-  filter: blur(var(--icon-swap-blur));
-  transform: scale(var(--icon-swap-start-scale));
-}
-
-/* 4. Tabs sliding */
-.t-tabs {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 3px;
-  border-radius: 48px;
-  background: var(--tabs-bar-bg);
-}
-.t-tab {
-  position: relative;
-  appearance: none;
-  border: 0;
-  background: transparent;
-  height: 30px;
-  padding: 4px 12px;
-  color: var(--tabs-text-muted);
-  cursor: pointer;
-  border-radius: 48px;
-  z-index: 1;
-  transition: color var(--tabs-dur) var(--tabs-ease);
-}
-.t-tab:not([aria-selected="true"]):hover,
-.t-tab[aria-selected="true"] {
-  color: var(--tabs-text-active);
-}
-
-.t-tabs-pill {
-  position: absolute;
-  top: 3px;
-  left: 0;
-  height: 30px;
-  width: 0;
-  background: var(--tabs-pill-bg);
-  border-radius: 48px;
-  transform: translateX(0);
-  transition:
-    transform var(--tabs-dur) var(--tabs-ease),
-    width var(--tabs-dur) var(--tabs-ease);
-  will-change: transform, width;
-  z-index: 0;
-  pointer-events: none;
+.bar-fade-in {
+  animation: bar-fade-in 300ms ease-out both;
+  animation-delay: var(--grow-delay, 0ms);
 }
 
 /* Reduced Motion Guards */
 @media (prefers-reduced-motion: reduce) {
-  .t-text-swap,
-  .t-dropdown,
-  .t-icon-swap .t-icon,
-  .t-tabs-pill,
-  .t-tab {
-    transition: none !important;
+  .bar-grow-x,
+  .bar-fade-in {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
   }
 }
