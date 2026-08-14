@@ -1,5 +1,9 @@
+/* oxlint-disable no-await-in-loop -- Every await in this file is a benchmark
+   step: warmup, one timed sample, and teardown all have to finish before the
+   next begins, or the numbers would be measured on a machine that is busy
+   running the previous step. */
 import { writeFileSync, existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import path from "node:path";
 import { performance } from "node:perf_hooks";
 
 import config from "../bench.config.json";
@@ -90,7 +94,7 @@ const time = async (fn: () => Promise<unknown>): Promise<number> => {
 };
 
 const main = async () => {
-  const resultsPath = resolve(__dirname, "..", config.bench.results);
+  const resultsPath = path.resolve(__dirname, "..", config.bench.results);
   let existing: Record<string, unknown> = {};
   try {
     existing = JSON.parse(readFileSync(resultsPath, "utf-8"));
@@ -98,8 +102,8 @@ const main = async () => {
     console.warn(`No readable results file at ${resultsPath}; starting fresh.`);
   }
 
-  const repoRoot = resolve(__dirname, "..", "..", "..");
-  const repoDir = resolve(repoRoot, config.git.repo);
+  const repoRoot = path.resolve(__dirname, "..", "..", "..");
+  const repoDir = path.resolve(repoRoot, config.git.repo);
   if (!existsSync(repoDir)) {
     console.error(`Repo not found at ${repoDir}. Run bun bench:clone first.`);
     process.exit(1);

@@ -18,7 +18,7 @@ export const formatMs = (ms: number, axis = false): string => {
     } else if (ms >= 0.01) {
       decimals = 2;
     }
-    return `${Number.parseFloat(ms.toFixed(decimals))}ms`;
+    return `${Number(ms.toFixed(decimals))}ms`;
   }
   if (ms >= 10) {
     return `${ms.toFixed(0)}ms`;

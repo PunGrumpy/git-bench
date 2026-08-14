@@ -51,8 +51,14 @@ export const sanitizeBenchError = (raw: string, repoPath: string): string => {
   return normalizeRawError(safeRaw)
     .replace(unixPattern, normalized)
     .replace(windowsPattern, normalized)
-    .replaceAll(/(?<![\w])\/(?:[^/\s:]+\/)+([^/\s:]+)/gu, "$1")
-    .replaceAll(/(?<![\w])[A-Za-z]:\\(?:[^\\\s:]+\\)+([^\\\s:]+)/gu, "$1")
+    .replaceAll(
+      /(?<![\w])\/(?:[^/\s:]+\/)+(?<unixLeaf>[^/\s:]+)/gu,
+      "$<unixLeaf>"
+    )
+    .replaceAll(
+      /(?<![\w])[A-Za-z]:\\(?:[^\\\s:]+\\)+(?<winLeaf>[^\\\s:]+)/gu,
+      "$<winLeaf>"
+    )
     .replaceAll(/\s+/gu, " ")
     .trim();
 };

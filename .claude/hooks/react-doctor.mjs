@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync, unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import nodePath from "node:path";
 
 const __filename = import.meta.filename;
 const __dirname = import.meta.dirname;
@@ -106,8 +106,8 @@ const main = () => {
   }
 
   const projectRoot =
-    process.env.CLAUDE_PROJECT_DIR || join(__dirname, "../..");
-  const outputPath = join(
+    process.env.CLAUDE_PROJECT_DIR || nodePath.join(__dirname, "../..");
+  const outputPath = nodePath.join(
     tmpdir(),
     `react-doctor-agent-hook-output-${process.pid}.txt`
   );
