@@ -23,6 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { trackEvent } from "@/lib/analytics";
 import {
   BASELINE_RUNNER,
   benchData,
@@ -54,6 +55,14 @@ const secondaryValue = (
     return formatMs(medianMs);
   }
   return ratio === null ? null : formatRatio(ratio);
+};
+
+/** Ascending, then descending, then back to the published order. */
+const nextSort = (current: Sort, runnerId: RunnerId): Sort => {
+  if (current?.runnerId !== runnerId) {
+    return { direction: "asc", runnerId };
+  }
+  return current.direction === "asc" ? { direction: "desc", runnerId } : null;
 };
 
 const ariaSort = (sort: Sort, runnerId: RunnerId) => {
@@ -98,9 +107,11 @@ const baselineOf = (operationId: OperationId) => {
 
 const ErrorCell = ({
   error,
+  operationId,
   runnerId,
 }: {
   error?: string;
+  operationId: OperationId;
   runnerId: RunnerId;
 }) => {
   const { detail, summary } = formatBenchError(
@@ -127,7 +138,17 @@ const ErrorCell = ({
           <p className="mb-2 font-medium">{runnerMeta[runnerId].label}</p>
           <p className="text-foreground text-sm leading-snug">{summary}</p>
           {detail && (
-            <Collapsible className="mt-2">
+            <Collapsible
+              className="mt-2"
+              onOpenChange={(open) => {
+                if (open) {
+                  trackEvent("result_error_open", {
+                    operation: operationId,
+                    runner: runnerId,
+                  });
+                }
+              }}
+            >
               <CollapsibleTrigger className="text-muted-foreground decoration-muted-foreground/60 hover:text-foreground text-xs underline decoration-dotted underline-offset-2">
                 Technical details
               </CollapsibleTrigger>
@@ -149,19 +170,18 @@ export const Matrix = () => {
   const [sort, setSort] = useState<Sort>(null);
 
   const toggleSort = (runnerId: RunnerId) => {
+    const next = nextSort(sort, runnerId);
     sfx.play("press");
-    setSort((current) => {
-      if (current?.runnerId !== runnerId) {
-        return { direction: "asc", runnerId };
-      }
-      return current.direction === "asc"
-        ? { direction: "desc", runnerId }
-        : null;
+    trackEvent("matrix_sort", {
+      direction: next?.direction ?? "none",
+      runner: runnerId,
     });
+    setSort(next);
   };
 
   const selectUnit = (next: Unit) => {
     sfx.play("select");
+    trackEvent("matrix_unit_change", { unit: next });
     setUnit(next);
   };
 
@@ -270,6 +290,7 @@ export const Matrix = () => {
                         <ErrorCell
                           error={result?.error}
                           key={id}
+                          operationId={operation.id}
                           runnerId={id}
                         />
                       );
