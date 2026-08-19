@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+import { Analytics } from "@/components/providers/analytics";
 import { DesignSystemProvider } from "@/components/providers/client";
 import { Footer } from "@/components/sections/footer";
 import { Header } from "@/components/sections/header";
@@ -69,6 +70,8 @@ const RootLayout = ({ children }: RootLayoutProps) => (
           </div>
         </div>
       </DesignSystemProvider>
+
+      <Analytics />
     </body>
   </html>
 );

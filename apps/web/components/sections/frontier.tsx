@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 import { useState } from "react";
 
 import { SegmentedControl } from "@/components/segmented-control";
+import { trackEvent } from "@/lib/analytics";
 import { BASELINE_RUNNER, runnerMeta } from "@/lib/bench";
 import type { RunnerBinding, RunnerId } from "@/lib/bench";
 import type { RunnerScore } from "@/lib/bench/metrics";
@@ -377,6 +378,7 @@ export const Frontier = () => {
           label="Horizontal axis"
           onChange={(next: XMetric) => {
             sfx.play("select");
+            trackEvent("frontier_axis_change", { metric: next });
             setMetric(next);
           }}
           options={X_METRICS}
@@ -397,6 +399,7 @@ export const Frontier = () => {
             key={option.value}
             onClick={() => {
               sfx.play("select");
+              trackEvent("frontier_filter_change", { binding: option.value });
               setGroup(option.value);
             }}
             type="button"

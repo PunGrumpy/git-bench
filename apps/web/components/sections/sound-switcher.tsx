@@ -4,6 +4,7 @@ import { Volume2Icon, VolumeXIcon } from "lucide-react";
 import { useSyncExternalStore } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { trackEvent } from "@/lib/analytics";
 import { sfx } from "@/lib/sfx";
 
 export const SoundSwitcher = () => {
@@ -16,6 +17,7 @@ export const SoundSwitcher = () => {
   const toggle = () => {
     const next = !enabled;
     sfx.setEnabled(next);
+    trackEvent("sound_toggle", { enabled: next });
     // Play on the way back in, so turning sound on demonstrates itself.
     if (next) {
       sfx.play("toggle-on");

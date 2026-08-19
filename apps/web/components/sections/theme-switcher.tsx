@@ -4,6 +4,7 @@ import { useTheme } from "next-themes";
 import type { SVGProps } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { trackEvent } from "@/lib/analytics";
 import { sfx } from "@/lib/sfx";
 
 export const SunIcon = ({ className, ...props }: SVGProps<SVGSVGElement>) => (
@@ -52,6 +53,7 @@ export const ThemeSwitcher = () => {
   const handleToggle = () => {
     const next = resolvedTheme === "dark" ? "light" : "dark";
     sfx.play(next === "dark" ? "toggle-off" : "toggle-on");
+    trackEvent("theme_change", { theme: next });
     setTheme(next);
   };
 
