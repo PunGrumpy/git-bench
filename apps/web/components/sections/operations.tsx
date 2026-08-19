@@ -2,6 +2,7 @@ import { ArrowRightIcon } from "lucide-react";
 import type { CSSProperties } from "react";
 
 import { RunnerLogo } from "@/components/runner-logo";
+import { trackAttributes } from "@/lib/analytics";
 import { benchData, findResult } from "@/lib/bench";
 import type { BenchOperation, RunnerId } from "@/lib/bench";
 import { formatRatio } from "@/lib/bench/metrics";
@@ -221,6 +222,7 @@ export const Operations = () => (
       </div>
 
       <a
+        {...trackAttributes("cta_click", { cta: "full_results" })}
         className="hover:bg-sidebar flex min-h-12.5 items-center justify-between gap-4 border-b border-dotted text-sm transition-colors"
         href="#results"
       >

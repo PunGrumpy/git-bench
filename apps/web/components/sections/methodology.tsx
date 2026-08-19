@@ -1,3 +1,4 @@
+import { trackAttributes } from "@/lib/analytics";
 import { benchData, repoCommitUrl, repoName } from "@/lib/bench";
 
 const samples = benchData.results[0]?.samples ?? 0;
@@ -38,11 +39,19 @@ export const Methodology = () => (
       {/* Data endpoints, not pages: next/link would hijack them with a client
           navigation. */}
       {/* oxlint-disable-next-line next/no-html-link-for-pages */}
-      <a className={linkClass} href="/results.json">
+      <a
+        {...trackAttributes("resource_open", { resource: "results_json" })}
+        className={linkClass}
+        href="/results.json"
+      >
         Raw results
       </a>
       , {/* oxlint-disable-next-line next/no-html-link-for-pages */}
-      <a className={linkClass} href="/schema.json">
+      <a
+        {...trackAttributes("resource_open", { resource: "schema_json" })}
+        className={linkClass}
+        href="/schema.json"
+      >
         config schema
       </a>{" "}
       and{" "}

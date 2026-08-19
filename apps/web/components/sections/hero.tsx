@@ -1,5 +1,6 @@
 import { ArrowUpRightIcon } from "lucide-react";
 
+import { trackAttributes } from "@/lib/analytics";
 import {
   BASELINE_RUNNER,
   benchData,
@@ -83,6 +84,7 @@ export const Hero = () => {
 
       <div className="flex flex-wrap items-center gap-3">
         <a
+          {...trackAttributes("cta_click", { cta: "methodology" })}
           className="bg-primary text-primary-foreground inline-flex h-9 items-center rounded-full px-4 text-sm font-medium transition-opacity hover:opacity-90"
           href="#methodology"
         >

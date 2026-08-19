@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 
 import { RunnerLogo } from "@/components/runner-logo";
+import { trackAttributes } from "@/lib/analytics";
 import { BASELINE_RUNNER, runnerMeta } from "@/lib/bench";
 import type { RunnerScore } from "@/lib/bench/metrics";
 import {
@@ -138,6 +139,10 @@ const Row = ({ index, score }: { index: number; score: RunnerScore }) => {
   return (
     <li>
       <a
+        {...trackAttributes("runner_open", {
+          rank: score.rank,
+          runner: score.runnerId,
+        })}
         className={cn(
           ROW_GRID,
           "gap-y-2 border-b border-dotted py-2.5",
