@@ -29,8 +29,9 @@ RUN curl -fsSL -o /usr/local/bin/ziggit \
       "https://github.com/hdresearch/ziggit/releases/download/${ZIGGIT_VERSION}/ziggit-linux-x86_64" && \
     chmod +x /usr/local/bin/ziggit
 
-# Install Bun
-RUN curl -fsSL https://bun.sh/install | bash
+# Install Bun (pinned: the runtime version moves the Bun-hosted runners)
+ENV BUN_VERSION=1.4.0
+RUN curl -fsSL https://bun.sh/install | bash -s "bun-v${BUN_VERSION}"
 ENV PATH="/root/.bun/bin:${PATH}"
 
 WORKDIR /app
