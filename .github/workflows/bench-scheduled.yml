@@ -24,16 +24,20 @@ jobs:
           model=$(lscpu | sed -n 's/^Model name:[[:space:]]*//p' | head -1)
           echo "cpu=$model" >> "$GITHUB_OUTPUT"
           echo "prev_cpu=$(jq -r '.environment.cpu // "unrecorded"' packages/bench/results.json)" >> "$GITHUB_OUTPUT"
+          echo "prev_bun=$(jq -r '.environment.bun // "unrecorded"' packages/bench/results.json)" >> "$GITHUB_OUTPUT"
 
       - name: Run benchmark in Docker
         run: bash scripts/docker-bench.sh 2>&1 | tee bench-output.txt
 
       - name: Record environment into results
+        id: env
         run: |
+          # `+=`, not `=`: the benchmark already wrote `bun` into `.environment`.
           jq --arg cpu "${{ steps.hw.outputs.cpu }}" \
-            '.environment = {cpu: $cpu, source: "github-actions"}' \
+            '.environment += {cpu: $cpu, source: "github-actions"}' \
             packages/bench/results.json > results.tmp
           mv results.tmp packages/bench/results.json
+          echo "bun=$(jq -r '.environment.bun // "unrecorded"' packages/bench/results.json)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v6
         with:
@@ -48,6 +52,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           CPU: ${{ steps.hw.outputs.cpu }}
           PREV_CPU: ${{ steps.hw.outputs.prev_cpu }}
+          BUN: ${{ steps.env.outputs.bun }}
+          PREV_BUN: ${{ steps.hw.outputs.prev_bun }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           if git diff --quiet packages/bench/results.json; then
@@ -63,19 +69,26 @@ jobs:
           git commit -m "chore(bench): weekly results refresh ($stamp)"
           git push -u origin "$branch" --force
 
-          if [ "$PREV_CPU" = "unrecorded" ]; then
-            compare="🆕 first snapshot with a recorded model"
-          elif [ "$CPU" = "$PREV_CPU" ]; then
-            compare="✅ same model — comparable with the previous snapshot"
-          else
-            compare="⚠️ different model — compare rankings, not milliseconds"
-          fi
+          verdict() {
+            if [ "$2" = "unrecorded" ]; then
+              printf '🆕 first snapshot recording this'
+            elif [ "$1" = "$2" ]; then
+              printf '✅ unchanged — comparable with the previous snapshot'
+            else
+              printf '%s' "$3"
+            fi
+          }
+          cpu_compare=$(verdict "$CPU" "$PREV_CPU" \
+            '⚠️ different model — compare rankings, not milliseconds')
+          bun_compare=$(verdict "$BUN" "$PREV_BUN" \
+            '⚠️ different runtime — `libgit2-ffi` and `isomorphic-git` milliseconds are not comparable')
 
           {
-            printf '| CPU | Previous | Comparability | Source |\n'
+            printf '| Environment | Current | Previous | Comparability |\n'
             printf '| --- | --- | --- | --- |\n'
-            printf '| `%s` | `%s` | %s | [run](%s) |\n' "$CPU" "$PREV_CPU" "$compare" "$RUN_URL"
-            printf '\n'
+            printf '| CPU | `%s` | `%s` | %s |\n' "$CPU" "$PREV_CPU" "$cpu_compare"
+            printf '| Bun | `%s` | `%s` | %s |\n' "$BUN" "$PREV_BUN" "$bun_compare"
+            printf '\nSource: github-actions ([run](%s))\n\n' "$RUN_URL"
             if grep -q "PARITY MISMATCH" bench-output.txt; then
               printf '**Parity** — runner output differs from the `git` baseline:\n\n'
               printf '| Runner / operation | Observed | Baseline |\n| --- | --- | --- |\n'

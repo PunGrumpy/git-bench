@@ -76,6 +76,13 @@ const BLOB_PATHS: string[] = [
   "packages/font/package.json",
 ];
 
+// Only the fields this script reads back are named; everything else in the
+// snapshot (operations, runners, …) is carried through untouched.
+interface ResultsFile {
+  [key: string]: unknown;
+  environment?: Record<string, unknown>;
+}
+
 interface Sample {
   runner: string;
   operation: OperationId;
@@ -95,7 +102,7 @@ const time = async (fn: () => Promise<unknown>): Promise<number> => {
 
 const main = async () => {
   const resultsPath = path.resolve(__dirname, "..", config.bench.results);
-  let existing: Record<string, unknown> = {};
+  let existing: ResultsFile = {};
   try {
     existing = JSON.parse(readFileSync(resultsPath, "utf-8"));
   } catch {
@@ -212,6 +219,11 @@ const main = async () => {
 
   const payload = {
     ...existing,
+    // Merged, not replaced: the scheduled workflow layers `cpu`/`source` on
+    // top after the run. Bun's version belongs here because it moves
+    // `libgit2-ffi` and `isomorphic-git` but not the subprocess runners, so it
+    // decides whether milliseconds are comparable across snapshots.
+    environment: { ...existing.environment, bun: Bun.version },
     lastBenchmarked: new Date().toISOString().slice(0, 10),
     repo: {
       path: config.git.repo,
