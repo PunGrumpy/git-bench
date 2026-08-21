@@ -126,3 +126,27 @@ describe.skipIf(!libAvailable)("libgit2-ffi read-25-blobs work parity", () => {
     expect(out).toEqual([0]);
   });
 });
+
+// `git_reference_shorthand` is the only `FFIType.cstring` return in the
+// codebase, and Bun 1.4 changed that type to yield a plain string instead of a
+// `CString` pointer wrapper. The runner reads it through `String(...)`, a no-op
+// for both shapes.
+describe.skipIf(!libAvailable)("libgit2-ffi current-branch work parity", () => {
+  it("matches git branch --show-current", async () => {
+    const name = await libgit2FfiRunner.run("current-branch", ctx);
+    expect(name).toBe(git("branch", "--show-current").trim());
+  });
+
+  // Re-reads HEAD rather than handing back a stale pointer freed by the
+  // previous call.
+  it("follows a branch switch", async () => {
+    git("switch", "-q", "-c", "parity-branch");
+    try {
+      const name = await libgit2FfiRunner.run("current-branch", ctx);
+      expect(name).toBe("parity-branch");
+    } finally {
+      git("switch", "-q", "main");
+      git("branch", "-qD", "parity-branch");
+    }
+  });
+});
