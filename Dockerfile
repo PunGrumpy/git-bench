@@ -4,6 +4,11 @@ FROM debian:bookworm-slim AS base
 # Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Fail a RUN as soon as any stage of a pipe fails. The default shell is dash,
+# which reports only the last command's exit status, so a truncated curl would
+# bake a half-installed toolchain into the image and still exit 0.
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
