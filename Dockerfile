@@ -4,6 +4,11 @@ FROM debian:bookworm-slim AS base
 # Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Fail a RUN as soon as any stage of a pipe fails. The default shell is dash,
+# which reports only the last command's exit status, so a truncated curl would
+# bake a half-installed toolchain into the image and still exit 0.
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
@@ -20,8 +25,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-# Install gitoxide (gix CLI)
-RUN cargo install gitoxide --locked
+# Install gitoxide (pinned: gix is one of the measured runners, so an unpinned
+# version silently changes benchmark numbers between builds). 0.56.0 is the
+# version packages/bench/src/runners/gitoxide.ts verified its output parsing
+# against; bump both together.
+ENV GITOXIDE_VERSION=0.56.0
+RUN cargo install gitoxide --locked --version "${GITOXIDE_VERSION}"
 
 # Install ziggit (prebuilt release binary — no Zig toolchain or source build needed)
 ENV ZIGGIT_VERSION=v0.3.1

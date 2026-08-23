@@ -35,3 +35,23 @@ jobs:
       - run: bun run test
 
       - run: bun run build
+
+  docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+
+      # Nothing else in CI reads the Dockerfile, and the image itself is only
+      # built by the Monday refresh and manual spikes.
+      - uses: PunGrumpy/docker-doctor@v1
+        with:
+          # Pinned for the same reason the image pins its runners: a lint that
+          # silently changes its rule set moves the result without a diff.
+          version: 0.4.2
+          # Errors fail the check; warnings and info stay advisory in the PR
+          # comment. Rules that do not fit a single-shot runner image are
+          # turned off in docker-doctor.config.yaml rather than muted here.
+          blocking: error
