@@ -50,7 +50,7 @@ jobs:
         with:
           # Pinned for the same reason the image pins its runners: a lint that
           # silently changes its rule set moves the result without a diff.
-          version: 0.4.2
+          version: 0.4.3
           # Errors fail the check; warnings and info stay advisory in the PR
           # comment. Rules that do not fit a single-shot runner image are
           # turned off in docker-doctor.config.yaml rather than muted here.
