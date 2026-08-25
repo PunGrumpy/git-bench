@@ -11,8 +11,3 @@ rules:
   # ENTRYPOINT runs to completion and exits; there is no port, no daemon, and
   # nothing for Docker to poll.
   docker-doctor/require-healthcheck: "off"
-
-  # TODO: re-enable once PunGrumpy/docker-doctor#84 ships. The Dockerfile does
-  # set pipefail, via `SHELL ["/bin/bash", "-o", "pipefail", "-c"]` in `base`,
-  # but the rule only inspects the RUN line and cannot see the SHELL directive.
-  docker-doctor/use-pipefail: "off"
