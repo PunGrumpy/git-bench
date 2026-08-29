@@ -5,7 +5,7 @@ import type { PointerEvent } from "react";
 import { effect, frameLoop, init, surface } from "vgpu";
 
 import { runnerMeta } from "@/lib/bench";
-import { findScore, formatRatio, runnerScores } from "@/lib/bench/metrics";
+import { formatRatio, runnerScores } from "@/lib/bench/metrics";
 import { cn } from "@/lib/utils";
 
 const RUNNER_COLORS = {
@@ -54,49 +54,22 @@ fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
 interface VisualPoint {
   readonly color: readonly [number, number, number];
   readonly label: string;
-  readonly operation: string;
   readonly ratio: number | null;
   readonly x: number;
   readonly y: number;
 }
 
-const operationScores = findScore("git-cli")?.operations ?? [];
-const operationCount = Math.max(operationScores.length, 1);
-
 const visualPoints: VisualPoint[] = runnerScores.map((score, index) => ({
   color: RUNNER_COLORS[score.runnerId],
   label: runnerMeta[score.runnerId].label,
-  operation: "overall",
   ratio: score.geomean,
   x: (index + 0.5) / runnerScores.length,
   y: FLOOR_Y - Math.min(Math.max(score.geomean ?? 1, 0.2), 3) * 0.19,
 }));
 
-const benchmarkPoints: VisualPoint[] = [];
-for (const score of runnerScores) {
-  for (const operation of score.operations) {
-    const operationIndex = operationScores.findIndex(
-      ({ operationId }) => operationId === operation.operationId
-    );
-    if (operationIndex === -1) {
-      continue;
-    }
-
-    const speed = operation.ratio === null ? null : 1 / operation.ratio;
-    benchmarkPoints.push({
-      color: RUNNER_COLORS[score.runnerId],
-      label: runnerMeta[score.runnerId].label,
-      operation: operation.operationId,
-      ratio: operation.ratio,
-      x: (operationIndex + 0.5) / operationCount,
-      y: speed === null ? 0.5 : 0.15 + Math.min(speed, 4) * 0.16,
-    });
-  }
-}
-
 const nearestPoint = (x: number, y: number): VisualPoint | null => {
   let nearest: { distance: number; point: VisualPoint } | null = null;
-  for (const point of [...visualPoints, ...benchmarkPoints]) {
+  for (const point of visualPoints) {
     const distance = (point.x - x) ** 2 + ((point.y - y) * 0.65) ** 2;
     if (!nearest || distance < nearest.distance) {
       nearest = { distance, point };
@@ -277,7 +250,7 @@ export const GpuVisual = () => {
                     ? "border-foreground scale-150"
                     : "border-background/80"
                 )}
-                key={`${point.label}-${point.operation}`}
+                key={point.label}
                 style={{
                   backgroundColor: pointColor,
                   left: `${point.x * 100}%`,
@@ -300,9 +273,7 @@ export const GpuVisual = () => {
         </span>
 
         {activePoint === null ? (
-          <span className="text-muted-foreground">
-            Select a runner or operation
-          </span>
+          <span className="text-muted-foreground">Select a runner</span>
         ) : (
           <span className="flex flex-wrap items-center gap-2">
             <span
