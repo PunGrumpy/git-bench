@@ -4,6 +4,7 @@ import { trackAttributes } from "@/lib/analytics";
 import {
   BASELINE_RUNNER,
   benchData,
+  lastRun,
   repoName,
   repoWebUrl,
   runnerMeta,
@@ -104,7 +105,11 @@ export const Hero = () => {
       <p className="text-muted-foreground border-t border-dotted pt-4 text-xs tabular-nums">
         {activeRunners.length} runners · {benchData.operations.length}{" "}
         operations · {samples} timed samples each · last run{" "}
-        {benchData.lastBenchmarked ?? "not yet"}
+        {lastRun ? (
+          <time dateTime={lastRun.iso}>{lastRun.label}</time>
+        ) : (
+          "not yet"
+        )}
       </p>
     </section>
   );

@@ -1,6 +1,7 @@
 import results from "@git-bench/bench/results.json";
 import type { StaticImageData } from "next/image";
 
+import { formatDate } from "@/lib/utils";
 import GitLogo from "@/public/git.png";
 import GitoxideLogo from "@/public/gitoxide.png";
 import IsomorphicGitLogo from "@/public/isomorphic-git.png";
@@ -80,6 +81,13 @@ export const repoWebUrl = benchData.repo.url.replace(/\.git$/u, "");
 export const repoName = repoWebUrl.replace("https://github.com/", "");
 
 export const repoCommitUrl = `${repoWebUrl}/commit/${benchData.repo.sha}`;
+
+export const lastRun = benchData.lastBenchmarked
+  ? {
+      iso: benchData.lastBenchmarked,
+      label: formatDate(benchData.lastBenchmarked) ?? benchData.lastBenchmarked,
+    }
+  : null;
 
 export const CHANGE_THRESHOLD_PERCENT = 0.5;
 
