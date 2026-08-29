@@ -3,6 +3,8 @@ import type { RunnerId } from "@/lib/bench";
 import { BASELINE_RUNNER, benchData, runnerMeta } from ".";
 import { runnerScores } from "./metrics";
 
+const activeRunners = benchData.runners.filter((runner) => !runner.comingSoon);
+
 interface Recommendation {
   readonly id: string;
   readonly title: string;
@@ -54,12 +56,22 @@ const bestInProcess = runnerScores.find(
     runnerMeta[score.runnerId].binding === "in-process"
 );
 
-const reliabilityScores = benchData.runners.map((runner) => ({
-  failures: benchData.operations.length - successfulOperations(runner.id),
-  mismatches: parityMismatches(runner.id),
-  runnerId: runner.id,
-  spread: averageSpread(runner.id) ?? Number.POSITIVE_INFINITY,
-}));
+const reliabilityScores = activeRunners.flatMap((runner) => {
+  const failures =
+    benchData.operations.length - successfulOperations(runner.id);
+  if (failures >= benchData.operations.length) {
+    return [];
+  }
+
+  return [
+    {
+      failures,
+      mismatches: parityMismatches(runner.id),
+      runnerId: runner.id,
+      spread: averageSpread(runner.id) ?? Number.POSITIVE_INFINITY,
+    },
+  ];
+});
 
 const mostReliable = reliabilityScores.toSorted(
   (a, b) =>
