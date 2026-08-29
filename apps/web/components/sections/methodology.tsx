@@ -2,6 +2,7 @@ import { trackAttributes } from "@/lib/analytics";
 import { benchData, repoCommitUrl, repoName } from "@/lib/bench";
 
 const samples = benchData.results[0]?.samples ?? 0;
+const { environment } = benchData;
 
 const REPO = "https://github.com/PunGrumpy/git-bench";
 
@@ -15,6 +16,12 @@ const notes = [
   "Numbers come from a GitHub Actions runner, so the comparison between runners is the signal and the milliseconds are context.",
 ];
 
+const environmentRows = [
+  { label: "CPU", value: environment?.cpu },
+  { label: "Runtime", value: environment?.bun && `Bun ${environment.bun}` },
+  { label: "Source", value: environment?.source },
+];
+
 export const Methodology = () => (
   <section className="flex flex-col gap-4" id="methodology">
     <h2 className="text-xl font-semibold">Methodology</h2>
@@ -24,6 +31,22 @@ export const Methodology = () => (
         <li key={note}>{note}</li>
       ))}
     </ul>
+
+    {environment && (
+      <dl className="border-border/60 grid max-w-prose grid-cols-1 gap-x-6 gap-y-2 border-t border-dotted pt-4 text-sm sm:grid-cols-2">
+        {environmentRows.map(({ label, value }) => (
+          <div
+            className="flex min-w-0 items-baseline justify-between gap-4"
+            key={label}
+          >
+            <dt className="text-muted-foreground">{label}</dt>
+            <dd className="truncate font-medium" title={value ?? undefined}>
+              {value ?? "Not recorded"}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    )}
 
     <p className="text-muted-foreground text-sm">
       Run {benchData.lastBenchmarked ?? "not yet recorded"} against{" "}
