@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 
+import { CommitGraph } from "@/components/sections/commit-graph";
 import { Frontier } from "@/components/sections/frontier";
 import { Hero } from "@/components/sections/hero";
 import { Leaderboard } from "@/components/sections/leaderboard";
 import { Matrix } from "@/components/sections/matrix";
 import { Methodology } from "@/components/sections/methodology";
 import { Operations } from "@/components/sections/operations";
+import { Recommendations } from "@/components/sections/recommendations";
 import { benchData } from "@/lib/bench";
 
 export const metadata: Metadata = {
@@ -31,9 +33,11 @@ const EmptyResults = () => (
 const Home = () => (
   <div className="flex flex-col gap-12">
     <Hero />
+    <CommitGraph />
     {benchData.results.length > 0 ? (
       <>
         <Leaderboard />
+        <Recommendations />
         <Operations />
         <Frontier />
         <Matrix />

@@ -43,6 +43,14 @@ export interface BenchResult {
   readonly maxMs: number;
   readonly samples: number;
   readonly error?: string;
+  readonly parity?: "match" | "mismatch" | "unknown";
+}
+
+export interface BenchEnvironment {
+  readonly bun?: string;
+  readonly cpu?: string;
+  readonly source?: string;
+  readonly runners?: Partial<Record<RunnerId, string>>;
 }
 
 export interface BenchData {
@@ -54,6 +62,7 @@ export interface BenchData {
     readonly shortSha: string;
   };
   readonly operations: readonly BenchOperation[];
+  readonly environment?: BenchEnvironment;
   readonly runners: readonly BenchRunner[];
   readonly results: readonly BenchResult[];
 }

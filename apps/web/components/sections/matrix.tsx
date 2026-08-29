@@ -30,7 +30,12 @@ import {
   findResult,
   runnerMeta,
 } from "@/lib/bench";
-import type { BenchOperation, OperationId, RunnerId } from "@/lib/bench";
+import type {
+  BenchOperation,
+  BenchResult,
+  OperationId,
+  RunnerId,
+} from "@/lib/bench";
 import { formatRatio } from "@/lib/bench/metrics";
 import { sfx } from "@/lib/sfx";
 import { cn, formatMs } from "@/lib/utils";
@@ -56,6 +61,14 @@ const secondaryValue = (
   }
   return ratio === null ? null : formatRatio(ratio);
 };
+
+const varianceLabel = (result: BenchResult) =>
+  result.samples > 0
+    ? `${formatMs(result.minMs)}–${formatMs(result.maxMs)}`
+    : null;
+
+const parityLabel = (parity: BenchResult["parity"] | undefined) =>
+  parity === "mismatch" ? "parity mismatch" : null;
 
 /** Ascending, then descending, then back to the published order. */
 const nextSort = (current: Sort, runnerId: RunnerId): Sort => {
@@ -315,6 +328,14 @@ export const Matrix = () => {
                         <span className="text-muted-foreground mt-0.5 block text-xs">
                           {secondaryValue(unit, result.medianMs, ratio)}
                         </span>
+                        <span className="text-muted-foreground/80 mt-0.5 block text-[10px]">
+                          {varianceLabel(result)}
+                        </span>
+                        {parityLabel(result.parity) && (
+                          <span className="text-foreground/70 mt-0.5 block text-[10px]">
+                            {parityLabel(result.parity)}
+                          </span>
+                        )}
                       </TableCell>
                     );
                   })}

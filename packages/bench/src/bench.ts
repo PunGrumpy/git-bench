@@ -78,11 +78,6 @@ const BLOB_PATHS: string[] = [
 
 // Only the fields this script reads back are named; everything else in the
 // snapshot (operations, runners, …) is carried through untouched.
-interface ResultsFile {
-  [key: string]: unknown;
-  environment?: Record<string, unknown>;
-}
-
 interface Sample {
   runner: string;
   operation: OperationId;
@@ -92,6 +87,12 @@ interface Sample {
   maxMs: number;
   samples: number;
   error?: string;
+  parity?: "match" | "mismatch" | "unknown";
+}
+
+interface ResultsFile {
+  [key: string]: unknown;
+  environment?: Record<string, unknown>;
 }
 
 const time = async (fn: () => Promise<unknown>): Promise<number> => {
@@ -99,6 +100,31 @@ const time = async (fn: () => Promise<unknown>): Promise<number> => {
   await fn();
   return performance.now() - t0;
 };
+
+const captureVersion = async (
+  command: () => Promise<string>
+): Promise<string> => {
+  try {
+    const version = await command();
+    return version.trim();
+  } catch {
+    return "unavailable";
+  }
+};
+
+const runnerVersions = async (
+  repoDir: string
+): Promise<Record<string, string>> => ({
+  "git-cli": await captureVersion(() =>
+    execInRepo("git", repoDir, ["--version"])
+  ),
+  gitoxide: await captureVersion(() =>
+    execInRepo(config.bin.gix ?? "gix", process.cwd(), ["--version"])
+  ),
+  ziggit: await captureVersion(() =>
+    execInRepo(config.bin.ziggit ?? "ziggit", process.cwd(), ["--version"])
+  ),
+});
 
 const main = async () => {
   const resultsPath = path.resolve(__dirname, "..", config.bench.results);
@@ -118,6 +144,7 @@ const main = async () => {
   const head = await execInRepo("git", repoDir, ["rev-parse", "HEAD"]);
   const sha = head.trim();
   const shortSha = sha.slice(0, 7);
+  const versions = await runnerVersions(repoDir);
   const ctx: RunnerContext = {
     blobPaths: BLOB_PATHS,
     gixBin: config.bin.gix,
@@ -155,6 +182,7 @@ const main = async () => {
           medianMs: 0,
           minMs: 0,
           operation: op,
+          parity: "unknown",
           runner: runner.id,
           samples: 0,
         });
@@ -167,17 +195,21 @@ const main = async () => {
         // warmup
         const warmup = await runner.run(op, ctx);
         const signature = signatureOf(op, warmup);
+        let parity: Sample["parity"] = "unknown";
         if (runner.id === BASELINE_RUNNER_ID) {
           baseline.set(op, signature);
+          parity = "match";
         } else {
           const expected = baseline.get(op);
-          if (
-            expected !== undefined &&
-            !signaturesAgree(op, expected, signature)
-          ) {
-            console.warn(
-              `  PARITY MISMATCH ${runner.id}/${op}: ${signature} != ${expected}`
-            );
+          if (expected !== undefined) {
+            parity = signaturesAgree(op, expected, signature)
+              ? "match"
+              : "mismatch";
+            if (parity === "mismatch") {
+              console.warn(
+                `  PARITY MISMATCH ${runner.id}/${op}: ${signature} != ${expected}`
+              );
+            }
           }
         }
 
@@ -188,7 +220,7 @@ const main = async () => {
           );
         }
         const s = stats(samples);
-        results.push({ operation: op, runner: runner.id, ...s });
+        results.push({ operation: op, parity, runner: runner.id, ...s });
         console.log(
           `  ${op.padEnd(16)} median=${s.medianMs.toFixed(2)}ms mean=${s.meanMs.toFixed(2)}ms n=${s.samples}`
         );
@@ -201,6 +233,7 @@ const main = async () => {
           medianMs: 0,
           minMs: 0,
           operation: op,
+          parity: "unknown",
           runner: runner.id,
           samples: 0,
         });
@@ -223,7 +256,11 @@ const main = async () => {
     // top after the run. Bun's version belongs here because it moves
     // `libgit2-ffi` and `isomorphic-git` but not the subprocess runners, so it
     // decides whether milliseconds are comparable across snapshots.
-    environment: { ...existing.environment, bun: Bun.version },
+    environment: {
+      ...existing.environment,
+      bun: Bun.version,
+      runners: versions,
+    },
     lastBenchmarked: new Date().toISOString().slice(0, 10),
     repo: {
       path: config.git.repo,
