@@ -28,7 +28,11 @@ export const SoundSwitcher = () => {
 
   return (
     <button
-      aria-label={enabled ? "Mute interface sounds" : "Unmute interface sounds"}
+      aria-label={
+        enabled
+          ? "Sound on, mute interface sounds"
+          : "Muted, unmute interface sounds"
+      }
       aria-pressed={enabled}
       className="text-muted-foreground hover:text-foreground transition-colors"
       onClick={toggle}

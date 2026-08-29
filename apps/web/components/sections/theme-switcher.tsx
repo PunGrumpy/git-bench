@@ -61,11 +61,14 @@ export const ThemeSwitcher = () => {
   // so the first paint matches the server and there is nothing to hydrate.
   return (
     <button
-      aria-label="Toggle theme"
       className="text-muted-foreground hover:text-foreground transition-colors"
       onClick={handleToggle}
       type="button"
     >
+      <span className="sr-only dark:hidden">Light theme, switch to dark</span>
+      <span className="sr-only hidden dark:inline">
+        Dark theme, switch to light
+      </span>
       <span className="hover:bg-sidebar flex size-9 items-center justify-center rounded-full border border-dotted transition-colors sm:hidden">
         <SunIcon className="size-4 dark:hidden" />
         <MoonIcon className="hidden size-4 dark:block" />
