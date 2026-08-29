@@ -1,6 +1,6 @@
 import type { RunnerId } from "@/lib/bench";
 
-import { BASELINE_RUNNER, benchData } from ".";
+import { BASELINE_RUNNER, benchData, runnerMeta } from ".";
 import { runnerScores } from "./metrics";
 
 interface Recommendation {
@@ -48,11 +48,10 @@ const averageSpread = (runnerId: RunnerId): number | null => {
   return total / spreads.length;
 };
 
-const bestInProcess = benchData.runners.find(
-  (runner) =>
-    !runner.comingSoon &&
-    runner.id !== BASELINE_RUNNER &&
-    runner.id !== "ziggit"
+const bestInProcess = runnerScores.find(
+  (score) =>
+    score.geomean !== null &&
+    runnerMeta[score.runnerId].binding === "in-process"
 );
 
 const reliabilityScores = benchData.runners.map((runner) => ({
@@ -83,7 +82,7 @@ export const recommendations: readonly Recommendation[] = [
     description:
       "Avoids subprocess startup when the benchmark work is embedded in your application.",
     id: "in-process",
-    runnerId: bestInProcess?.id ?? BASELINE_RUNNER,
+    runnerId: bestInProcess?.runnerId ?? BASELINE_RUNNER,
     title: "Best in-process option",
   },
   {
