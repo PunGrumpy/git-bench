@@ -65,6 +65,17 @@ for (const [index, point] of visualPoints.entries()) {
   barData.set(point.color, offset + BAR_COLOR_OFFSET);
 }
 
+const rgb = (color: readonly number[]) =>
+  `rgb(${color.map((channel) => Math.round(channel * 255)).join(" ")})`;
+
+const describeRatio = (ratio: number | null) =>
+  ratio === null ? "no result" : `${formatRatio(ratio)} the median of git`;
+
+/** The canvas is decorative; this sentence is what the figure caption reads out. */
+const chartSummary = `Median benchmark time relative to git, log scale: ${visualPoints
+  .map((point) => `${point.label} ${describeRatio(point.ratio)}`)
+  .join("; ")}.`;
+
 const activeParams = (point: VisualPoint | null) => ({
   accent: point?.color ?? DEFAULT_ACCENT,
   activeBar: point ? visualPoints.indexOf(point) : NO_ACTIVE_BAR,
@@ -176,9 +187,11 @@ export const GpuVisual = () => {
     const bounds = event.currentTarget.getBoundingClientRect();
     const x = (event.clientX - bounds.left) / bounds.width;
     const y = (event.clientY - bounds.top) / bounds.height;
+    const point = nearestPoint(x, y);
 
     pointerRef.current = { hover: 1, x, y };
-    setHoveredPoint(nearestPoint(x, y));
+    setHoveredPoint(point);
+    return point;
   };
 
   const leavePointer = () => {
@@ -186,122 +199,98 @@ export const GpuVisual = () => {
     setHoveredPoint(null);
   };
 
-  const selectPoint = (offset: number) => {
-    const currentPoint = selectedPoint ?? hoveredPoint;
-    const currentIndex = currentPoint ? visualPoints.indexOf(currentPoint) : -1;
-    const nextIndex =
-      currentIndex === -1 && offset < 0
-        ? visualPoints.length - 1
-        : (currentIndex + offset + visualPoints.length) % visualPoints.length;
-
-    setSelectedPoint(visualPoints[nextIndex] ?? null);
-  };
-
-  const activeColor = activePoint
-    ? `rgb(${activePoint.color.map((channel) => Math.round(channel * 255)).join(" ")})`
-    : undefined;
-
   return (
-    <section className="flex flex-col gap-3">
-      <div className="relative">
+    <figure className="flex flex-col gap-3">
+      <div className="relative h-48">
         <canvas
           aria-hidden
-          className="absolute inset-0 h-full w-full"
+          className="h-full w-full touch-none rounded-lg border border-dotted"
           height={240}
+          onPointerDown={(event) => {
+            const point = updatePointer(event);
+            setSelectedPoint(point === selectedPoint ? null : point);
+          }}
+          onPointerLeave={leavePointer}
+          onPointerMove={updatePointer}
           ref={canvasRef}
           width={640}
         />
 
-        <canvas
-          aria-label="Git benchmark performance"
-          className="relative h-48 w-full touch-none rounded-lg border border-dotted"
-          height={240}
-          style={
-            webgpuFailed
-              ? {
-                  background: `radial-gradient(circle at 50% ${FLOOR_Y * 100}%, ${activeColor ?? "rgb(153 51 26)"}33, transparent 65%)`,
-                }
-              : undefined
-          }
-          onKeyDown={(event) => {
-            if (event.key === "ArrowLeft") {
-              event.preventDefault();
-              selectPoint(-1);
-            }
-            if (event.key === "ArrowRight") {
-              event.preventDefault();
-              selectPoint(1);
-            }
-            if (event.key === "Escape") {
-              setSelectedPoint(null);
-            }
-          }}
-          onPointerDown={(event) => {
-            updatePointer(event);
-            const nextPoint =
-              selectedPoint === hoveredPoint ? null : hoveredPoint;
-            setSelectedPoint(nextPoint);
-          }}
-          onPointerLeave={leavePointer}
-          onPointerMove={updatePointer}
-          tabIndex={0}
-          width={640}
-        />
-
-        <div aria-hidden className="pointer-events-none absolute inset-0">
-          {visualPoints.map((point) => {
-            const pointColor = `rgb(${point.color
-              .map((channel) => Math.round(channel * 255))
-              .join(" ")})`;
-            const isActive = point === activePoint;
-
-            return (
-              <span
-                className={cn(
-                  "absolute size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border transition-transform",
-                  isActive
-                    ? "border-foreground scale-150"
-                    : "border-background/80"
-                )}
+        {webgpuFailed ? (
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            {visualPoints.map((point) => (
+              <div
+                className="absolute -translate-x-1/2 rounded-t-sm opacity-70"
                 key={point.label}
                 style={{
-                  backgroundColor: pointColor,
+                  backgroundColor: rgb(point.color),
+                  height: `${(FLOOR_Y - point.y) * 100}%`,
                   left: `${point.x * 100}%`,
                   top: `${point.y * 100}%`,
+                  width: `${BAR_HALF_WIDTH * 200}%`,
                 }}
               />
-            );
-          })}
+            ))}
+          </div>
+        ) : null}
+
+        {/* Not a pointer target: the canvas already tracks the nearest bar, so
+            these exist to give the chart a keyboard and screen reader path. */}
+        <div className="pointer-events-none absolute inset-0">
+          {visualPoints.map((point) => (
+            <button
+              aria-label={`${point.label}, ${describeRatio(point.ratio)}`}
+              aria-pressed={point === selectedPoint}
+              className={cn(
+                "absolute size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border transition-transform",
+                "focus-visible:outline-foreground focus-visible:outline-2 focus-visible:outline-offset-2",
+                point === activePoint
+                  ? "border-foreground scale-150"
+                  : "border-background/80"
+              )}
+              key={point.label}
+              onBlur={() => setHoveredPoint(null)}
+              onClick={() =>
+                setSelectedPoint(point === selectedPoint ? null : point)
+              }
+              onFocus={() => setHoveredPoint(point)}
+              style={{
+                backgroundColor: rgb(point.color),
+                left: `${point.x * 100}%`,
+                top: `${point.y * 100}%`,
+              }}
+              type="button"
+            />
+          ))}
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
-        <span className="sr-only">
-          Use the left and right arrow keys to inspect runners. Press Escape to
-          clear the selection.
-        </span>
+      <figcaption className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+        <span className="sr-only">{chartSummary}</span>
 
         <span className="text-muted-foreground">
           Median vs git · log scale · shorter is faster
         </span>
 
-        {activePoint === null ? (
-          <span className="text-muted-foreground">Select a runner</span>
-        ) : (
-          <span className="flex flex-wrap items-center gap-2">
-            <span
-              className="size-2.5 rounded-full"
-              style={{ backgroundColor: activeColor }}
-            />
-            <span className="font-medium">{activePoint.label}</span>
-            <span className="text-muted-foreground">
-              {activePoint.ratio === null
-                ? "—"
-                : formatRatio(activePoint.ratio)}
+        <span aria-atomic aria-live="polite" className="flex items-center">
+          {activePoint === null ? (
+            <span className="text-muted-foreground">Select a runner</span>
+          ) : (
+            <span className="flex flex-wrap items-center gap-2">
+              <span
+                className="size-2.5 rounded-full"
+                style={{ backgroundColor: rgb(activePoint.color) }}
+              />
+              <span className="font-medium">{activePoint.label}</span>
+              <span className="text-muted-foreground">
+                {activePoint.ratio === null
+                  ? "—"
+                  : formatRatio(activePoint.ratio)}
+              </span>
             </span>
-          </span>
-        )}
-      </div>
-    </section>
+          )}
+        </span>
+      </figcaption>
+    </figure>
   );
 };
