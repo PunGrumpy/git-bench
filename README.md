@@ -1,6 +1,6 @@
 # Git Bench
 
-![Preview](https://git-benchmark.vercel.app/preview.png)
+![The Git Bench dashboard: overall ranking, per-operation spread, and the full results table](https://git-benchmark.vercel.app/preview.png)
 
 Benchmarks git client implementations against a clone of [`vercel/next.js`](https://github.com/vercel/next.js):
 
@@ -23,10 +23,10 @@ Operations measured:
 
 ## Prerequisites
 
-- **Docker** installed and running on your system.
-- **Bun** installed locally (for running the web dashboard).
+- **Docker**: installed and running
+- **Bun**: installed locally, to run the web dashboard
 
-No local installation of `git`, `gix` (gitoxide), or `libgit2` is required; all benchmark runners are executed inside a Docker container.
+Docker runs every benchmark runner inside the container, so you do not need `git`, `gix` (gitoxide), or `libgit2` on your machine.
 
 ## Running
 
@@ -38,7 +38,7 @@ bun run dev           # Start the dashboard at http://localhost:3000
 
 ## Configuration
 
-You can configure the benchmark using `packages/bench/bench.config.json`:
+Configure the benchmark in `packages/bench/bench.config.json`:
 
 ```json
 {
@@ -70,12 +70,12 @@ You can configure the benchmark using `packages/bench/bench.config.json`:
 
 ## Methodology
 
-Each runner runs one warmup iteration, followed by `SAMPLES` timed iterations of each operation. Setup tasks (like opening the repository or loading JS modules) run outside the timed region to avoid skewing the results. The dashboard displays the median time per operation; the underlying JSON also records the mean, min, max, and sample count.
+Each runner runs one warmup iteration, followed by `bench.samples` timed iterations of each operation. Setup tasks (like opening the repository or loading JS modules) run outside the timed region to avoid skewing the results. The dashboard displays the median time per operation; the underlying JSON also records the mean, min, max, and sample count.
 
-The dashboard also ranks runners by a single score: each operation is expressed as a multiple of the `git` CLI, and the multiples are combined with a geometric mean. Ratios keep operations that differ by four orders of magnitude comparable, and the geometric mean stops one slow operation from deciding the aggregate on its own. The score is computed in the web app from `results.json`, not stored in it.
+The dashboard also ranks runners by a single score: it divides each operation by the `git` CLI time, then combines those multiples with a geometric mean. Ratios keep operations that differ by four orders of magnitude comparable, and the geometric mean stops one slow operation from deciding the aggregate on its own. The web app derives the score from `results.json` rather than reading it out of the file.
 
-All runners are held to the same work contract per operation — for example, `status` collects untracked (but not ignored) files, and `read-25-blobs` materializes full blob contents rather than only reading object headers. During warmup, each runner's output signature is compared against the `git` CLI baseline; disagreements are logged as `PARITY MISMATCH` warnings (never failures) so a runner that measures different work is visible instead of silently flattered.
+Every runner meets the same work contract per operation. For example, `status` collects untracked (but not ignored) files, and `read-25-blobs` materializes full blob contents rather than only reading object headers. During warmup, the harness compares each runner's output signature against the `git` CLI baseline and logs any disagreement as a `PARITY MISMATCH` warning, never a failure, so a runner that measures different work shows up instead of scoring well for doing less.
 
-The published numbers were produced inside the Docker container on a GitHub Actions runner. Absolute times vary with the underlying CPU model; the stable signal is the comparison between runners, not the milliseconds themselves.
+GitHub Actions produced the published numbers inside the Docker container. Absolute times vary with the underlying CPU model, so compare the runners against each other rather than reading the milliseconds as fixed.
 
 The `libgit2-ffi` runner uses minimal `bun:ffi` bindings in `packages/bench/src/runners/libgit2-ffi.ts`.
