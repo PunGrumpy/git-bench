@@ -4,14 +4,15 @@ import { useEffect, useRef } from "react";
 import { clock, effect, frameLoop, init, surface } from "vgpu";
 
 const shader = `
-struct FragmentInput {
-  @builtin(position) position: vec4f,
+struct Params {
+  time: f32,
 };
 
+@group(0) @binding(0) var<uniform> params: Params;
+
 @fragment
-fn main(input: FragmentInput) -> @location(0) vec4f {
-  let uv = input.position.xy / vec2f(640.0, 160.0);
-  let wave = sin((uv.x * 12.0) + clock.time * 1.5) * 0.5 + 0.5;
+fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
+  let wave = sin((uv.x * 12.0) + params.time * 1.5) * 0.5 + 0.5;
   let grid = abs(fract(uv * vec2f(18.0, 4.0)) - vec2f(0.5));
   let line = 1.0 - min(min(grid.x, grid.y) * 18.0, 1.0);
   let intensity = mix(0.12, 0.55, wave) * line;
@@ -40,10 +41,12 @@ export const GpuVisual = () => {
         }
 
         const canvasSurface = surface(gpu, canvas, { dpr: [1, 2] });
-        const visualEffect = effect(gpu, shader);
+        const visualEffect = effect(gpu, shader, {
+          set: { params: { time: 0 } },
+        });
         const time = clock(gpu);
         const loop = frameLoop(gpu, (frame) => {
-          visualEffect.set({ time: time.time });
+          visualEffect.set({ params: { time: time.time } });
           frame.pass(canvasSurface, visualEffect);
         });
 
