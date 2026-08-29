@@ -57,7 +57,10 @@
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  /* 5.75:1 on the page rather than shadcn's 4.73:1. Secondary text also lands
+     on the results matrix's heat tint, and at 4.73:1 there was no headroom
+     left: a 22% tint dropped it to 3.74:1. */
+  --muted-foreground: oklch(0.51 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);

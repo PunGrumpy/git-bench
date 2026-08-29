@@ -342,11 +342,11 @@ export const Matrix = () => {
                         <span className="text-muted-foreground mt-0.5 block text-xs">
                           {secondaryValue(unit, result.medianMs, ratio)}
                         </span>
-                        <span className="text-muted-foreground/80 mt-0.5 block text-[10px]">
+                        <span className="text-muted-foreground mt-0.5 block text-xs">
                           {varianceLabel(result)}
                         </span>
                         {parityLabel(result.parity) && (
-                          <span className="text-foreground/70 mt-0.5 block text-[10px]">
+                          <span className="text-foreground mt-0.5 block text-xs font-medium">
                             {parityLabel(result.parity)}
                           </span>
                         )}
