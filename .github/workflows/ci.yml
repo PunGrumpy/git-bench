@@ -30,6 +30,15 @@ jobs:
 
       - run: bun run check
 
+      # `next build` ships invalid WGSL with a clean log, so shaders need their
+      # own gate — and that gate compiles against a real WebGPU device. The
+      # runner has no GPU: libvulkan1 is the loader, mesa-vulkan-drivers the
+      # lavapipe CPU driver behind it.
+      - name: Install a headless Vulkan stack
+        run: sudo apt-get update && sudo apt-get install -y libvulkan1 mesa-vulkan-drivers
+
+      - run: bun run check:shaders
+
       - run: bun run typecheck
 
       - run: bun run test
