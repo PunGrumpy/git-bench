@@ -14,7 +14,6 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "check": "ultracite check",
-    "check:shaders": "bash scripts/check-shaders.sh",
     "fix": "ultracite fix",
     "bench": "bash scripts/docker-bench.sh",
     "bench:build": "docker build -t git-bench .",
