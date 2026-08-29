@@ -12,10 +12,10 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   TableBody,
   TableCell,
@@ -134,18 +134,16 @@ const ErrorCell = ({
 
   return (
     <TableCell className="text-center text-xs">
-      <HoverCard closeDelay={80} openDelay={200}>
-        <HoverCardTrigger asChild>
-          <button
-            className="text-muted-foreground decoration-muted-foreground/60 hover:text-foreground underline decoration-dotted underline-offset-2"
-            type="button"
-          >
-            failed
-          </button>
-        </HoverCardTrigger>
-        <HoverCardContent
+      <Popover>
+        <PopoverTrigger
+          className="text-muted-foreground decoration-muted-foreground/60 hover:text-foreground underline decoration-dotted underline-offset-2"
+          type="button"
+        >
+          failed
+        </PopoverTrigger>
+        <PopoverContent
           align="center"
-          className="bg-popover w-80 rounded-md border border-dotted p-3 text-xs"
+          className="bg-popover w-80 gap-0 rounded-md border border-dotted p-3 text-xs"
           sideOffset={6}
         >
           <p className="mb-2 font-medium">{runnerMeta[runnerId].label}</p>
@@ -166,14 +164,18 @@ const ErrorCell = ({
                 Technical details
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <p className="no-scrollbar text-muted-foreground mt-2 max-h-32 overflow-y-auto text-xs leading-snug">
+                <p
+                  className="text-muted-foreground mt-2 max-h-32 overflow-y-auto text-xs leading-snug"
+                  // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+                  tabIndex={0}
+                >
                   {detail}
                 </p>
               </CollapsibleContent>
             </Collapsible>
           )}
-        </HoverCardContent>
-      </HoverCard>
+        </PopoverContent>
+      </Popover>
     </TableCell>
   );
 };
