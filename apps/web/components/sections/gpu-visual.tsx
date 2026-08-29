@@ -63,27 +63,14 @@ interface VisualPoint {
 const operationScores = findScore("git-cli")?.operations ?? [];
 const operationCount = Math.max(operationScores.length, 1);
 
-const visualPoints: VisualPoint[] = runnerScores.map((score) => {
-  const ratios = score.operations
-    .map((operation) => operation.ratio)
-    .filter((ratio): ratio is number => ratio !== null && ratio > 0);
-  const geomean =
-    ratios.length === 0
-      ? null
-      : Math.exp(
-          ratios.reduce((sum, ratio) => sum + Math.log(ratio), 0) /
-            ratios.length
-        );
-
-  return {
-    color: RUNNER_COLORS[score.runnerId],
-    label: runnerMeta[score.runnerId].label,
-    operation: "overall",
-    ratio: geomean,
-    x: (runnerScores.indexOf(score) + 0.5) / runnerScores.length,
-    y: FLOOR_Y - Math.min(Math.max(geomean ?? 1, 0.2), 3) * 0.19,
-  };
-});
+const visualPoints: VisualPoint[] = runnerScores.map((score, index) => ({
+  color: RUNNER_COLORS[score.runnerId],
+  label: runnerMeta[score.runnerId].label,
+  operation: "overall",
+  ratio: score.geomean,
+  x: (index + 0.5) / runnerScores.length,
+  y: FLOOR_Y - Math.min(Math.max(score.geomean ?? 1, 0.2), 3) * 0.19,
+}));
 
 const benchmarkPoints: VisualPoint[] = [];
 for (const score of runnerScores) {
