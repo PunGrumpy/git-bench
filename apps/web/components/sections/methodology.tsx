@@ -1,5 +1,5 @@
 import { trackAttributes } from "@/lib/analytics";
-import { benchData, repoCommitUrl, repoName } from "@/lib/bench";
+import { benchData, lastRun, repoCommitUrl, repoName } from "@/lib/bench";
 
 const samples = benchData.results[0]?.samples ?? 0;
 const { environment } = benchData;
@@ -49,7 +49,13 @@ export const Methodology = () => (
     )}
 
     <p className="text-muted-foreground text-sm">
-      Run {benchData.lastBenchmarked ?? "not yet recorded"} against{" "}
+      Run{" "}
+      {lastRun ? (
+        <time dateTime={lastRun.iso}>{lastRun.label}</time>
+      ) : (
+        "not yet recorded"
+      )}{" "}
+      against{" "}
       <a
         className={linkClass}
         href={repoCommitUrl}

@@ -151,7 +151,7 @@ const Row = ({ index, row }: { index: number; row: OperationSpread }) => {
         </span>
       </span>
 
-      <span className="col-start-2 row-start-1 flex flex-col items-end md:col-auto md:row-auto">
+      <span className="col-start-2 row-start-1 flex flex-col items-end text-right md:col-auto md:row-auto">
         <span className="text-[15px] tabular-nums" style={{ color }}>
           {formatRatio(row.spread)}{" "}
           {uncertainty > 0 && (

@@ -24,7 +24,7 @@ export const GitHubIcon = ({
 );
 
 export const Header = () => (
-  <div className="flex items-center justify-between">
+  <header className="flex items-center justify-between">
     <Link
       className="flex items-center gap-2 text-lg font-semibold transition-opacity hover:opacity-80"
       href="/"
@@ -53,5 +53,5 @@ export const Header = () => (
         </Badge>
       </a>
     </div>
-  </div>
+  </header>
 );

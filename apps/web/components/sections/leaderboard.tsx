@@ -155,19 +155,22 @@ const Row = ({ index, score }: { index: number; score: RunnerScore }) => {
         style={vars({}, { "--row-c": meta.color })}
       >
         <span className="col-start-1 row-start-1 flex min-w-0 items-center gap-2.5 md:col-auto md:row-auto">
-          <span
-            aria-label={`Rank ${score.rank}${score.tied ? ", tied" : ""}`}
-            className="text-muted-foreground shrink-0 text-xs tabular-nums"
-          >
+          <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
+            <span className="sr-only">Rank </span>
             <span className="inline-block w-4 text-right">{score.rank}</span>
             <span aria-hidden className="inline-block w-2 text-left">
               {score.tied ? "=" : ""}
             </span>
+            {score.tied && <span className="sr-only">, tied</span>}
           </span>
           <RunnerLogo runnerId={score.runnerId} />
+          {/* The runner name is what the row is about, so the language and
+              binding are what give way when the column gets tight. Held back
+              to `lg`: between `md` and there, the three-column grid leaves the
+              name 62px for 99px of "isomorphic-git". */}
           <span className="flex min-w-0 items-baseline">
             <span className="truncate text-[15px]">{meta.label}</span>
-            <span className="text-muted-foreground hidden shrink-0 pl-2 text-xs whitespace-nowrap sm:inline">
+            <span className="text-muted-foreground hidden shrink-0 pl-2 text-xs whitespace-nowrap lg:inline">
               {meta.language} · {meta.binding}
             </span>
           </span>

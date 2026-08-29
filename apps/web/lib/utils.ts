@@ -26,6 +26,18 @@ export const formatMs = (ms: number, axis = false): string => {
   return `${ms.toFixed(2)}ms`;
 };
 
+const DATE_FORMAT = new Intl.DateTimeFormat("en-US", {
+  day: "numeric",
+  month: "short",
+  timeZone: "UTC",
+  year: "numeric",
+});
+
+export const formatDate = (iso: string): string | null => {
+  const parsed = new Date(iso);
+  return Number.isNaN(parsed.getTime()) ? null : DATE_FORMAT.format(parsed);
+};
+
 export const escapeJsonForHtml = (json: string): string =>
   json
     .replaceAll("<", "\\u003c")

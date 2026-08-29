@@ -12,10 +12,10 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   TableBody,
   TableCell,
@@ -134,18 +134,16 @@ const ErrorCell = ({
 
   return (
     <TableCell className="text-center text-xs">
-      <HoverCard closeDelay={80} openDelay={200}>
-        <HoverCardTrigger asChild>
-          <button
-            className="text-muted-foreground decoration-muted-foreground/60 hover:text-foreground underline decoration-dotted underline-offset-2"
-            type="button"
-          >
-            failed
-          </button>
-        </HoverCardTrigger>
-        <HoverCardContent
+      <Popover>
+        <PopoverTrigger
+          className="text-muted-foreground decoration-muted-foreground/60 hover:text-foreground underline decoration-dotted underline-offset-2"
+          type="button"
+        >
+          failed
+        </PopoverTrigger>
+        <PopoverContent
           align="center"
-          className="bg-popover w-80 rounded-md border border-dotted p-3 text-xs"
+          className="bg-popover w-80 gap-0 rounded-md border border-dotted p-3 text-xs"
           sideOffset={6}
         >
           <p className="mb-2 font-medium">{runnerMeta[runnerId].label}</p>
@@ -166,14 +164,18 @@ const ErrorCell = ({
                 Technical details
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <p className="no-scrollbar text-muted-foreground mt-2 max-h-32 overflow-y-auto text-xs leading-snug">
+                <p
+                  className="text-muted-foreground mt-2 max-h-32 overflow-y-auto text-xs leading-snug"
+                  // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+                  tabIndex={0}
+                >
                   {detail}
                 </p>
               </CollapsibleContent>
             </Collapsible>
           )}
-        </HoverCardContent>
-      </HoverCard>
+        </PopoverContent>
+      </Popover>
     </TableCell>
   );
 };
@@ -227,11 +229,19 @@ export const Matrix = () => {
         />
       </div>
 
-      <div className="no-scrollbar relative overflow-x-auto">
+      <section
+        aria-label="Full results, scrollable"
+        className="relative overflow-x-auto pb-1"
+        // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+        tabIndex={0}
+      >
         <table className="w-full min-w-max border-separate border-spacing-0 text-sm">
           <TableHeader>
             <TableRow className="border-b border-dotted hover:bg-transparent">
-              <TableHead className="bg-background sticky left-0 z-30 w-28 min-w-28 border-r border-dotted shadow-[4px_0_8px_-4px_oklch(0_0_0/0.06)] sm:w-44 sm:min-w-44 dark:shadow-[4px_0_8px_-4px_oklch(0_0_0/0.35)]">
+              <TableHead
+                className="bg-background sticky left-0 z-30 w-28 min-w-28 border-r border-dotted shadow-[4px_0_8px_-4px_oklch(0_0_0/0.06)] sm:w-44 sm:min-w-44 dark:shadow-[4px_0_8px_-4px_oklch(0_0_0/0.35)]"
+                scope="col"
+              >
                 Operation
               </TableHead>
               {activeRunners.map(({ id }) => {
@@ -244,6 +254,7 @@ export const Matrix = () => {
                     aria-sort={ariaSort(sort, id)}
                     className="min-w-20 text-center sm:min-w-24"
                     key={id}
+                    scope="col"
                   >
                     <button
                       className={cn(
@@ -288,12 +299,15 @@ export const Matrix = () => {
                   className="border-b border-dotted hover:bg-transparent"
                   key={operation.id}
                 >
-                  <TableCell className="bg-background sticky left-0 z-20 w-28 min-w-28 shadow-[4px_0_8px_-4px_oklch(0_0_0/0.06)] after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:border-l after:border-dotted sm:w-44 sm:min-w-44 dark:shadow-[4px_0_8px_-4px_oklch(0_0_0/0.35)]">
+                  <TableHead
+                    className="bg-background sticky left-0 z-20 w-28 min-w-28 font-normal shadow-[4px_0_8px_-4px_oklch(0_0_0/0.06)] after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:border-l after:border-dotted sm:w-44 sm:min-w-44 dark:shadow-[4px_0_8px_-4px_oklch(0_0_0/0.35)]"
+                    scope="row"
+                  >
                     <p className="text-sm">{operation.label}</p>
                     <p className="text-muted-foreground hidden text-xs leading-snug sm:block">
                       {operation.description}
                     </p>
-                  </TableCell>
+                  </TableHead>
 
                   {activeRunners.map(({ id }) => {
                     const result = findResult(id, operation.id);
@@ -328,11 +342,11 @@ export const Matrix = () => {
                         <span className="text-muted-foreground mt-0.5 block text-xs">
                           {secondaryValue(unit, result.medianMs, ratio)}
                         </span>
-                        <span className="text-muted-foreground/80 mt-0.5 block text-[10px]">
+                        <span className="text-muted-foreground mt-0.5 block text-xs">
                           {varianceLabel(result)}
                         </span>
                         {parityLabel(result.parity) && (
-                          <span className="text-foreground/70 mt-0.5 block text-[10px]">
+                          <span className="text-foreground mt-0.5 block text-xs font-medium">
                             {parityLabel(result.parity)}
                           </span>
                         )}
@@ -344,7 +358,7 @@ export const Matrix = () => {
             })}
           </TableBody>
         </table>
-      </div>
+      </section>
     </section>
   );
 };

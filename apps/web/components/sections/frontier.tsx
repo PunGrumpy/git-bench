@@ -223,7 +223,7 @@ const Plot = ({
 
           <span
             aria-hidden
-            className="text-muted-foreground absolute right-2 bottom-1.5 text-[11px] italic"
+            className="text-muted-foreground absolute right-2 bottom-1.5 text-xs italic"
           >
             fast and predictable ↙
           </span>
@@ -260,7 +260,7 @@ const Plot = ({
                 />
                 <span
                   className={cn(
-                    "text-[11px] whitespace-nowrap",
+                    "text-xs whitespace-nowrap",
                     isActive || point.score.runnerId === BASELINE_RUNNER
                       ? "text-foreground"
                       : "text-muted-foreground"
