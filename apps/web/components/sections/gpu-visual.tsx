@@ -115,6 +115,11 @@ export const GpuVisual = () => {
           return;
         }
 
+        // WGSL and pipeline failures are delivered here rather than thrown, so
+        // without this listener a shader that stops compiling would silently
+        // leave the canvas blank instead of falling back.
+        const unlisten = gpu.onError(() => setWebgpuFailed(true));
+
         const canvasSurface = surface(gpu, canvas, { dpr: [1, 2] });
         const bars = storage(gpu, barData.byteLength, "read");
         bars.write(barData);
@@ -150,6 +155,7 @@ export const GpuVisual = () => {
 
         cleanup = () => {
           effectRef.current = null;
+          unlisten();
           unsubscribe();
           loop.stop();
           canvasSurface.dispose();
