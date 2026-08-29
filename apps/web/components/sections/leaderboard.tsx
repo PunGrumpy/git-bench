@@ -155,14 +155,13 @@ const Row = ({ index, score }: { index: number; score: RunnerScore }) => {
         style={vars({}, { "--row-c": meta.color })}
       >
         <span className="col-start-1 row-start-1 flex min-w-0 items-center gap-2.5 md:col-auto md:row-auto">
-          <span
-            aria-label={`Rank ${score.rank}${score.tied ? ", tied" : ""}`}
-            className="text-muted-foreground shrink-0 text-xs tabular-nums"
-          >
+          <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
+            <span className="sr-only">Rank </span>
             <span className="inline-block w-4 text-right">{score.rank}</span>
             <span aria-hidden className="inline-block w-2 text-left">
               {score.tied ? "=" : ""}
             </span>
+            {score.tied && <span className="sr-only">, tied</span>}
           </span>
           <RunnerLogo runnerId={score.runnerId} />
           <span className="flex min-w-0 items-baseline">
