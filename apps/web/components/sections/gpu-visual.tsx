@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent } from "react";
-import { effect, frameLoop, init, storage, surface } from 'vgpu';
-import type { Effect } from 'vgpu';
+import { effect, frameLoop, init, storage, surface } from "vgpu";
+import type { Effect } from "vgpu";
 
 import { runnerMeta } from "@/lib/bench";
-import { formatRatio, runnerScores } from "@/lib/bench/metrics";
+import { formatRatio, ratioPosition, runnerScores } from "@/lib/bench/metrics";
 import { cn } from "@/lib/utils";
 
 import shader from "./gpu-visual.wgsl";
@@ -21,6 +21,8 @@ const RUNNER_COLORS = {
 
 const BAR_HALF_WIDTH = 1 / 11;
 const FLOOR_Y = 0.86;
+/** Room above the floor line for a bar at the top of the ratio axis. */
+const PLOT_HEIGHT = FLOOR_Y - 0.06;
 /** Past the end of `bars`, which is how the shader reads "nothing selected". */
 const NO_ACTIVE_BAR = 0xff_ff_ff_ff;
 const DEFAULT_ACCENT = [0.6, 0.2, 0.1] as const;
@@ -33,12 +35,22 @@ interface VisualPoint {
   readonly y: number;
 }
 
+/**
+ * Bar top on the same log ratio axis the operation charts use. A linear scale
+ * cannot hold this data: the runners span four decades, so anything past a few
+ * multiples of `git` flattens into one indistinguishable height.
+ */
+const barTop = (ratio: number | null) =>
+  ratio === null
+    ? FLOOR_Y
+    : FLOOR_Y - (ratioPosition(ratio) / 100) * PLOT_HEIGHT;
+
 const visualPoints: VisualPoint[] = runnerScores.map((score, index) => ({
   color: RUNNER_COLORS[score.runnerId],
   label: runnerMeta[score.runnerId].label,
   ratio: score.geomean,
   x: (index + 0.5) / runnerScores.length,
-  y: FLOOR_Y - Math.min(Math.max(score.geomean ?? 1, 0.2), 3) * 0.19,
+  y: barTop(score.geomean),
 }));
 
 /** `Bar` is a 32-byte stride: `center`, `top`, then a 16-byte-aligned `color`. */
@@ -264,7 +276,7 @@ export const GpuVisual = () => {
         </span>
 
         <span className="text-muted-foreground">
-          Runner score · lower is faster
+          Median vs git · log scale · shorter is faster
         </span>
 
         {activePoint === null ? (
