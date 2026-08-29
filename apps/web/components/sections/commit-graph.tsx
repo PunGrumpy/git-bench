@@ -1,14 +1,11 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { useEffect, useRef } from "react";
 
 import { DRAW_MS, drawCommitGraph, STAGES } from "./commit-graph-draw";
 
 export const CommitGraph = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const redrawRef = useRef<(() => void) | null>(null);
-  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -47,7 +44,10 @@ export const CommitGraph = () => {
       });
     };
 
-    redrawRef.current = render;
+    const themes = new MutationObserver(render);
+    themes.observe(document.documentElement, {
+      attributeFilter: ["class"],
+    });
 
     const tick = (now: number) => {
       started ||= now;
@@ -80,15 +80,11 @@ export const CommitGraph = () => {
     observer.observe(canvas);
 
     return () => {
-      redrawRef.current = null;
+      themes.disconnect();
       observer.disconnect();
       cancelAnimationFrame(frame);
     };
   }, []);
-
-  useEffect(() => {
-    redrawRef.current?.();
-  }, [resolvedTheme]);
 
   return (
     <figure className="flex flex-col gap-3">
