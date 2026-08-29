@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { PointerEvent } from "react";
-import { clock, effect, frameLoop, init, storage, surface } from "vgpu";
+import { effect, frameLoop, init, surface } from "vgpu";
 
 import { runnerMeta } from "@/lib/bench";
 import { findScore, formatRatio, runnerScores } from "@/lib/bench/metrics";
@@ -16,33 +16,24 @@ const RUNNER_COLORS = {
   ziggit: [0.56, 0.2, 0.79],
 } as const;
 
-const BAR_COUNT = 5;
 const BAR_WIDTH = 1 / 11;
 const FLOOR_Y = 0.86;
-const RUNNER_SIZE = 8;
 
 const shader = `
 struct Params {
-  time: f32,
   pointer: vec2f,
   hover: f32,
-  selected: f32,
-};
-
-struct Runner {
   center: f32,
   ratio: f32,
   color: vec3f,
 };
 
 @group(0) @binding(0) var<uniform> params: Params;
-@group(0) @binding(1) var<storage, read> runners: array<Runner>;
 
 @fragment
 fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
-  let activeRunner = runners[u32(round(params.selected * ${BAR_COUNT}))];
-  let barDistance = abs(uv.x - activeRunner.center);
-  let barTop = ${FLOOR_Y} - clamp(activeRunner.ratio, 0.2, 3.0) * 0.19;
+  let barDistance = abs(uv.x - params.center);
+  let barTop = ${FLOOR_Y} - clamp(params.ratio, 0.2, 3.0) * 0.19;
   let inBar = uv.y > barTop && uv.y < ${FLOOR_Y};
   let floorDistance = abs(uv.y - ${FLOOR_Y});
   let floorGlow = exp(-floorDistance * 18.0);
@@ -55,7 +46,7 @@ fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
     1.0
   );
   let surface = vec3f(0.07, 0.1, 0.09);
-  let glow = activeRunner.color * 1.35;
+  let glow = params.color * 1.35;
   return vec4f(mix(surface, glow, intensity), 1.0);
 }
 `;
@@ -131,13 +122,21 @@ export const GpuVisual = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const pointerRef = useRef({ x: 0.5, y: 0.5 });
   const hoveredPointRef = useRef<VisualPoint | null>(null);
+  const activePointRef = useRef<VisualPoint | null>(null);
   const [hoveredPoint, setHoveredPoint] = useState<VisualPoint | null>(null);
   const [selectedPoint, setSelectedPoint] = useState<VisualPoint | null>(null);
-  const selectedX = useMemo(() => selectedPoint?.x ?? 0.5, [selectedPoint]);
+  const [webgpuFailed, setWebgpuFailed] = useState(false);
+
+  const activePoint = hoveredPoint ?? selectedPoint;
+
+  useEffect(() => {
+    activePointRef.current = activePoint;
+  }, [activePoint]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !navigator.gpu) {
+      setWebgpuFailed(true);
       return;
     }
 
@@ -153,37 +152,35 @@ export const GpuVisual = () => {
         }
 
         const canvasSurface = surface(gpu, canvas, { dpr: [1, 2] });
-        const runnerBuffer = storage(
-          gpu,
-          visualPoints.length * RUNNER_SIZE,
-          "read"
-        );
-        const runnerData = new Float32Array(visualPoints.length * 2);
-        for (const [index, point] of visualPoints.entries()) {
-          runnerData[index * 2] = point.x;
-          runnerData[index * 2 + 1] = point.ratio ?? 1;
-        }
-        runnerBuffer.write(runnerData);
-
         const visualEffect = effect(gpu, shader, {
           set: {
             params: {
+              center: activePointRef.current?.x ?? 0.5,
+              color: [
+                activePointRef.current?.color[0] ?? 0.6,
+                activePointRef.current?.color[1] ?? 0.2,
+                activePointRef.current?.color[2] ?? 0.1,
+              ],
               hover: 0,
               pointer: [0.5, 0.5],
-              selected: selectedX,
-              time: 0,
+              ratio: activePointRef.current?.ratio ?? 1,
             },
-            runners: runnerBuffer,
           },
         });
-        const time = clock(gpu);
         const loop = frameLoop(gpu, (frame) => {
+          const point = activePointRef.current;
+
           visualEffect.set({
             params: {
+              center: point?.x ?? 0.5,
+              color: [
+                point?.color[0] ?? 0.6,
+                point?.color[1] ?? 0.2,
+                point?.color[2] ?? 0.1,
+              ],
               hover: hoveredPointRef.current ? 1 : 0,
               pointer: [pointerRef.current.x, pointerRef.current.y],
-              selected: selectedX,
-              time: time.time,
+              ratio: point?.ratio ?? 1,
             },
           });
           frame.pass(canvasSurface, visualEffect);
@@ -195,7 +192,7 @@ export const GpuVisual = () => {
           gpu.dispose();
         };
       } catch {
-        canvas.remove();
+        setWebgpuFailed(true);
       }
     })();
 
@@ -203,7 +200,7 @@ export const GpuVisual = () => {
       disposed = true;
       cleanup?.();
     };
-  }, [selectedX]);
+  }, []);
 
   const updatePointer = (event: PointerEvent<HTMLCanvasElement>) => {
     const bounds = event.currentTarget.getBoundingClientRect();
@@ -227,7 +224,6 @@ export const GpuVisual = () => {
     setSelectedPoint(visualPoints[nextIndex] ?? null);
   };
 
-  const activePoint = hoveredPoint ?? selectedPoint;
   const activeColor = activePoint
     ? `rgb(${activePoint.color.map((channel) => Math.round(channel * 255)).join(" ")})`
     : undefined;
@@ -247,6 +243,13 @@ export const GpuVisual = () => {
           aria-label="Git benchmark performance"
           className="relative h-48 w-full touch-none rounded-lg border border-dotted"
           height={240}
+          style={
+            webgpuFailed
+              ? {
+                  background: `radial-gradient(circle at 50% ${FLOOR_Y * 100}%, ${activeColor ?? "rgb(153 51 26)"}33, transparent 65%)`,
+                }
+              : undefined
+          }
           onKeyDown={(event) => {
             if (event.key === "ArrowLeft") {
               event.preventDefault();
