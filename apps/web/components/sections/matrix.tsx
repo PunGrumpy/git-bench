@@ -238,7 +238,10 @@ export const Matrix = () => {
         <table className="w-full min-w-max border-separate border-spacing-0 text-sm">
           <TableHeader>
             <TableRow className="border-b border-dotted hover:bg-transparent">
-              <TableHead className="bg-background sticky left-0 z-30 w-28 min-w-28 border-r border-dotted shadow-[4px_0_8px_-4px_oklch(0_0_0/0.06)] sm:w-44 sm:min-w-44 dark:shadow-[4px_0_8px_-4px_oklch(0_0_0/0.35)]">
+              <TableHead
+                className="bg-background sticky left-0 z-30 w-28 min-w-28 border-r border-dotted shadow-[4px_0_8px_-4px_oklch(0_0_0/0.06)] sm:w-44 sm:min-w-44 dark:shadow-[4px_0_8px_-4px_oklch(0_0_0/0.35)]"
+                scope="col"
+              >
                 Operation
               </TableHead>
               {activeRunners.map(({ id }) => {
@@ -251,6 +254,7 @@ export const Matrix = () => {
                     aria-sort={ariaSort(sort, id)}
                     className="min-w-20 text-center sm:min-w-24"
                     key={id}
+                    scope="col"
                   >
                     <button
                       className={cn(
@@ -295,12 +299,15 @@ export const Matrix = () => {
                   className="border-b border-dotted hover:bg-transparent"
                   key={operation.id}
                 >
-                  <TableCell className="bg-background sticky left-0 z-20 w-28 min-w-28 shadow-[4px_0_8px_-4px_oklch(0_0_0/0.06)] after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:border-l after:border-dotted sm:w-44 sm:min-w-44 dark:shadow-[4px_0_8px_-4px_oklch(0_0_0/0.35)]">
+                  <TableHead
+                    className="bg-background sticky left-0 z-20 w-28 min-w-28 font-normal shadow-[4px_0_8px_-4px_oklch(0_0_0/0.06)] after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:border-l after:border-dotted sm:w-44 sm:min-w-44 dark:shadow-[4px_0_8px_-4px_oklch(0_0_0/0.35)]"
+                    scope="row"
+                  >
                     <p className="text-sm">{operation.label}</p>
                     <p className="text-muted-foreground hidden text-xs leading-snug sm:block">
                       {operation.description}
                     </p>
-                  </TableCell>
+                  </TableHead>
 
                   {activeRunners.map(({ id }) => {
                     const result = findResult(id, operation.id);
