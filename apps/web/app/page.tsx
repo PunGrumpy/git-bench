@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
+import { CommitGraph } from "@/components/sections/commit-graph";
 import { Frontier } from "@/components/sections/frontier";
-import { GpuVisual } from "@/components/sections/gpu-visual";
 import { Hero } from "@/components/sections/hero";
 import { Leaderboard } from "@/components/sections/leaderboard";
 import { Matrix } from "@/components/sections/matrix";
@@ -33,7 +33,7 @@ const EmptyResults = () => (
 const Home = () => (
   <div className="flex flex-col gap-12">
     <Hero />
-    <GpuVisual />
+    <CommitGraph />
     {benchData.results.length > 0 ? (
       <>
         <Leaderboard />
