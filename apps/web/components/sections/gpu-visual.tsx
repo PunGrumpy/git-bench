@@ -2,11 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent } from "react";
-import { effect, frameLoop, init, surface } from "vgpu";
+import { effect, frameLoop, init, storage, surface } from 'vgpu';
+import type { Effect } from 'vgpu';
 
 import { runnerMeta } from "@/lib/bench";
 import { formatRatio, runnerScores } from "@/lib/bench/metrics";
 import { cn } from "@/lib/utils";
+
+import shader from "./gpu-visual.wgsl";
 
 const RUNNER_COLORS = {
   "git-cli": [0.62, 0.19, 0.11],
@@ -16,40 +19,11 @@ const RUNNER_COLORS = {
   ziggit: [0.56, 0.2, 0.79],
 } as const;
 
-const BAR_WIDTH = 1 / 11;
+const BAR_HALF_WIDTH = 1 / 11;
 const FLOOR_Y = 0.86;
-
-const shader = `
-struct Params {
-  pointer: vec2f,
-  hover: f32,
-  center: f32,
-  ratio: f32,
-  color: vec3f,
-};
-
-@group(0) @binding(0) var<uniform> params: Params;
-
-@fragment
-fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
-  let barDistance = abs(uv.x - params.center);
-  let barTop = ${FLOOR_Y} - clamp(params.ratio, 0.2, 3.0) * 0.19;
-  let inBar = uv.y > barTop && uv.y < ${FLOOR_Y};
-  let floorDistance = abs(uv.y - ${FLOOR_Y});
-  let floorGlow = exp(-floorDistance * 18.0);
-  let pointerDistance = distance(uv, params.pointer);
-  let hoverGlow = exp(-pointerDistance * 5.5) * params.hover;
-  let edgeGlow = exp(-min(abs(barDistance - ${BAR_WIDTH}), abs(uv.y - barTop)) * 14.0);
-  let intensity = clamp(
-    (floorGlow * 0.24) + (edgeGlow * 0.2 * inBar) + (hoverGlow * 0.28) + (0.35 * inBar),
-    0.0,
-    1.0
-  );
-  let surface = vec3f(0.07, 0.1, 0.09);
-  let glow = params.color * 1.35;
-  return vec4f(mix(surface, glow, intensity), 1.0);
-}
-`;
+/** Past the end of `bars`, which is how the shader reads "nothing selected". */
+const NO_ACTIVE_BAR = 0xff_ff_ff_ff;
+const DEFAULT_ACCENT = [0.6, 0.2, 0.1] as const;
 
 interface VisualPoint {
   readonly color: readonly [number, number, number];
@@ -67,6 +41,23 @@ const visualPoints: VisualPoint[] = runnerScores.map((score, index) => ({
   y: FLOOR_Y - Math.min(Math.max(score.geomean ?? 1, 0.2), 3) * 0.19,
 }));
 
+/** `Bar` is a 32-byte stride: `center`, `top`, then a 16-byte-aligned `color`. */
+const BAR_FLOATS = 8;
+const BAR_COLOR_OFFSET = 4;
+
+const barData = new Float32Array(visualPoints.length * BAR_FLOATS);
+for (const [index, point] of visualPoints.entries()) {
+  const offset = index * BAR_FLOATS;
+  barData[offset] = point.x;
+  barData[offset + 1] = point.y;
+  barData.set(point.color, offset + BAR_COLOR_OFFSET);
+}
+
+const activeParams = (point: VisualPoint | null) => ({
+  accent: point?.color ?? DEFAULT_ACCENT,
+  activeBar: point ? visualPoints.indexOf(point) : NO_ACTIVE_BAR,
+});
+
 const nearestPoint = (x: number, y: number): VisualPoint | null => {
   let nearest: { distance: number; point: VisualPoint } | null = null;
   for (const point of visualPoints) {
@@ -80,8 +71,8 @@ const nearestPoint = (x: number, y: number): VisualPoint | null => {
 
 export const GpuVisual = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const pointerRef = useRef({ x: 0.5, y: 0.5 });
-  const hoveredPointRef = useRef<VisualPoint | null>(null);
+  const effectRef = useRef<Effect | null>(null);
+  const pointerRef = useRef({ hover: 0, x: 0.5, y: 0.5 });
   const activePointRef = useRef<VisualPoint | null>(null);
   const [hoveredPoint, setHoveredPoint] = useState<VisualPoint | null>(null);
   const [selectedPoint, setSelectedPoint] = useState<VisualPoint | null>(null);
@@ -91,6 +82,7 @@ export const GpuVisual = () => {
 
   useEffect(() => {
     activePointRef.current = activePoint;
+    effectRef.current?.set({ params: activeParams(activePoint) });
   }, [activePoint]);
 
   useEffect(() => {
@@ -112,41 +104,41 @@ export const GpuVisual = () => {
         }
 
         const canvasSurface = surface(gpu, canvas, { dpr: [1, 2] });
+        const bars = storage(gpu, barData.byteLength, "read");
+        bars.write(barData);
+
         const visualEffect = effect(gpu, shader, {
+          label: "benchmark-bars",
           set: {
+            bars,
             params: {
-              center: activePointRef.current?.x ?? 0.5,
-              color: [
-                activePointRef.current?.color[0] ?? 0.6,
-                activePointRef.current?.color[1] ?? 0.2,
-                activePointRef.current?.color[2] ?? 0.1,
-              ],
+              ...activeParams(activePointRef.current),
+              aspect: canvasSurface.size[0] / canvasSurface.size[1],
+              floorY: FLOOR_Y,
+              halfWidth: BAR_HALF_WIDTH,
               hover: 0,
               pointer: [0.5, 0.5],
-              ratio: activePointRef.current?.ratio ?? 1,
             },
           },
         });
+        effectRef.current = visualEffect;
+
+        const unsubscribe = canvasSurface.onResize(({ width, height }) => {
+          visualEffect.set({ params: { aspect: width / height } });
+        });
+
         const loop = frameLoop(gpu, (frame) => {
-          const point = activePointRef.current;
+          const pointer = pointerRef.current;
 
           visualEffect.set({
-            params: {
-              center: point?.x ?? 0.5,
-              color: [
-                point?.color[0] ?? 0.6,
-                point?.color[1] ?? 0.2,
-                point?.color[2] ?? 0.1,
-              ],
-              hover: hoveredPointRef.current ? 1 : 0,
-              pointer: [pointerRef.current.x, pointerRef.current.y],
-              ratio: point?.ratio ?? 1,
-            },
+            params: { hover: pointer.hover, pointer: [pointer.x, pointer.y] },
           });
           frame.pass(canvasSurface, visualEffect);
         });
 
         cleanup = () => {
+          effectRef.current = null;
+          unsubscribe();
           loop.stop();
           canvasSurface.dispose();
           gpu.dispose();
@@ -166,11 +158,14 @@ export const GpuVisual = () => {
     const bounds = event.currentTarget.getBoundingClientRect();
     const x = (event.clientX - bounds.left) / bounds.width;
     const y = (event.clientY - bounds.top) / bounds.height;
-    const point = nearestPoint(x, y);
 
-    pointerRef.current = { x, y };
-    hoveredPointRef.current = point;
-    setHoveredPoint(point);
+    pointerRef.current = { hover: 1, x, y };
+    setHoveredPoint(nearestPoint(x, y));
+  };
+
+  const leavePointer = () => {
+    pointerRef.current = { ...pointerRef.current, hover: 0 };
+    setHoveredPoint(null);
   };
 
   const selectPoint = (offset: number) => {
@@ -229,7 +224,7 @@ export const GpuVisual = () => {
               selectedPoint === hoveredPoint ? null : hoveredPoint;
             setSelectedPoint(nextPoint);
           }}
-          onPointerLeave={() => setHoveredPoint(null)}
+          onPointerLeave={leavePointer}
           onPointerMove={updatePointer}
           tabIndex={0}
           width={640}
