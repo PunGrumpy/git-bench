@@ -204,11 +204,9 @@
   a[href^="mailto:"] * {
     @apply cursor-alias;
   }
-  button:focus,
-  input:focus,
-  textarea:focus,
-  a:focus {
-    @apply focus-visible:ring-primary focus-visible:ring-offset-background focus-visible:ring-1 focus-visible:ring-offset-2 focus-visible:outline-none;
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
   }
   @media (prefers-reduced-motion: reduce) {
     *,
