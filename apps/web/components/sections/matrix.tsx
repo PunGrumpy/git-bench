@@ -229,7 +229,12 @@ export const Matrix = () => {
         />
       </div>
 
-      <div className="no-scrollbar relative overflow-x-auto">
+      <section
+        aria-label="Full results, scrollable"
+        className="relative overflow-x-auto pb-1"
+        // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+        tabIndex={0}
+      >
         <table className="w-full min-w-max border-separate border-spacing-0 text-sm">
           <TableHeader>
             <TableRow className="border-b border-dotted hover:bg-transparent">
@@ -346,7 +351,7 @@ export const Matrix = () => {
             })}
           </TableBody>
         </table>
-      </div>
+      </section>
     </section>
   );
 };
