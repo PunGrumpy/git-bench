@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent } from "react";
-import { clock, effect, frameLoop, init, surface } from "vgpu";
+import { clock, effect, frameLoop, init, storage, surface } from "vgpu";
 
-import { benchData, runnerMeta } from "@/lib/bench";
+import { runnerMeta } from "@/lib/bench";
 import { findScore, formatRatio, runnerScores } from "@/lib/bench/metrics";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +16,11 @@ const RUNNER_COLORS = {
   ziggit: [0.56, 0.2, 0.79],
 } as const;
 
+const BAR_COUNT = 5;
+const BAR_WIDTH = 1 / 11;
+const FLOOR_Y = 0.86;
+const RUNNER_SIZE = 8;
+
 const shader = `
 struct Params {
   time: f32,
@@ -24,39 +29,41 @@ struct Params {
   selected: f32,
 };
 
+struct Runner {
+  center: f32,
+  ratio: f32,
+  color: vec3f,
+};
+
 @group(0) @binding(0) var<uniform> params: Params;
+@group(0) @binding(1) var<storage, read> runners: array<Runner>;
 
 @fragment
 fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
-  let columns = 6.0;
-  let operation = floor(uv.x * columns);
-  let localX = fract(uv.x * columns);
-  let wave = sin((uv.x * 18.0) + params.time * 0.8) * 0.5 + 0.5;
-  let gridY = abs(fract(uv.y * 12.0) - 0.5);
-  let grid = 1.0 - min(gridY * 18.0, 1.0);
-  let rowGlow = exp(-abs(uv.y - (0.5 + (wave - 0.5) * 0.18)) * 8.0);
-  let highlightColumn = smoothstep(0.04, 0.0, abs(localX - 0.5));
-  let hoverDistance = distance(uv, params.pointer);
-  let hoverGlow = exp(-hoverDistance * 7.0) * params.hover;
-  let selectedGlow = exp(-abs(uv.x - params.selected) * 10.0);
+  let activeRunner = runners[u32(round(params.selected * ${BAR_COUNT}))];
+  let barDistance = abs(uv.x - activeRunner.center);
+  let barTop = ${FLOOR_Y} - clamp(activeRunner.ratio, 0.2, 3.0) * 0.19;
+  let inBar = uv.y > barTop && uv.y < ${FLOOR_Y};
+  let floorDistance = abs(uv.y - ${FLOOR_Y});
+  let floorGlow = exp(-floorDistance * 18.0);
+  let pointerDistance = distance(uv, params.pointer);
+  let hoverGlow = exp(-pointerDistance * 5.5) * params.hover;
+  let edgeGlow = exp(-min(abs(barDistance - ${BAR_WIDTH}), abs(uv.y - barTop)) * 14.0);
   let intensity = clamp(
-    (0.08 + (grid * 0.18) + (rowGlow * 0.22) + (highlightColumn * 0.14)) +
-    (hoverGlow * 0.16) + (selectedGlow * 0.12),
+    (floorGlow * 0.24) + (edgeGlow * 0.2 * inBar) + (hoverGlow * 0.28) + (0.35 * inBar),
     0.0,
     1.0
   );
-  let base = vec3f(0.24, 0.58, 0.46);
-  let accent = vec3f(0.72, 0.82, 0.63);
-  return vec4f(mix(base, accent, intensity) * intensity, 1.0);
+  let surface = vec3f(0.07, 0.1, 0.09);
+  let glow = activeRunner.color * 1.35;
+  return vec4f(mix(surface, glow, intensity), 1.0);
 }
 `;
 
 interface VisualPoint {
   readonly color: readonly [number, number, number];
   readonly label: string;
-  readonly medianMs: number | null;
-  readonly operationId: string;
-  readonly operationLabel: string;
+  readonly operation: string;
   readonly ratio: number | null;
   readonly x: number;
   readonly y: number;
@@ -64,11 +71,30 @@ interface VisualPoint {
 
 const operationScores = findScore("git-cli")?.operations ?? [];
 const operationCount = Math.max(operationScores.length, 1);
-const operationLabels = new Map(
-  benchData.operations.map((operation) => [operation.id, operation.label])
-);
 
-const visualPoints: VisualPoint[] = [];
+const visualPoints: VisualPoint[] = runnerScores.map((score) => {
+  const ratios = score.operations
+    .map((operation) => operation.ratio)
+    .filter((ratio): ratio is number => ratio !== null && ratio > 0);
+  const geomean =
+    ratios.length === 0
+      ? null
+      : Math.exp(
+          ratios.reduce((sum, ratio) => sum + Math.log(ratio), 0) /
+            ratios.length
+        );
+
+  return {
+    color: RUNNER_COLORS[score.runnerId],
+    label: runnerMeta[score.runnerId].label,
+    operation: "overall",
+    ratio: geomean,
+    x: (runnerScores.indexOf(score) + 0.5) / runnerScores.length,
+    y: FLOOR_Y - Math.min(Math.max(geomean ?? 1, 0.2), 3) * 0.19,
+  };
+});
+
+const benchmarkPoints: VisualPoint[] = [];
 for (const score of runnerScores) {
   for (const operation of score.operations) {
     const operationIndex = operationScores.findIndex(
@@ -79,13 +105,10 @@ for (const score of runnerScores) {
     }
 
     const speed = operation.ratio === null ? null : 1 / operation.ratio;
-    visualPoints.push({
+    benchmarkPoints.push({
       color: RUNNER_COLORS[score.runnerId],
       label: runnerMeta[score.runnerId].label,
-      medianMs: operation.medianMs,
-      operationId: operation.operationId,
-      operationLabel:
-        operationLabels.get(operation.operationId) ?? operation.operationId,
+      operation: operation.operationId,
       ratio: operation.ratio,
       x: (operationIndex + 0.5) / operationCount,
       y: speed === null ? 0.5 : 0.15 + Math.min(speed, 4) * 0.16,
@@ -95,7 +118,7 @@ for (const score of runnerScores) {
 
 const nearestPoint = (x: number, y: number): VisualPoint | null => {
   let nearest: { distance: number; point: VisualPoint } | null = null;
-  for (const point of visualPoints) {
+  for (const point of [...visualPoints, ...benchmarkPoints]) {
     const distance = (point.x - x) ** 2 + ((point.y - y) * 0.65) ** 2;
     if (!nearest || distance < nearest.distance) {
       nearest = { distance, point };
@@ -130,6 +153,18 @@ export const GpuVisual = () => {
         }
 
         const canvasSurface = surface(gpu, canvas, { dpr: [1, 2] });
+        const runnerBuffer = storage(
+          gpu,
+          visualPoints.length * RUNNER_SIZE,
+          "read"
+        );
+        const runnerData = new Float32Array(visualPoints.length * 2);
+        for (const [index, point] of visualPoints.entries()) {
+          runnerData[index * 2] = point.x;
+          runnerData[index * 2 + 1] = point.ratio ?? 1;
+        }
+        runnerBuffer.write(runnerData);
+
         const visualEffect = effect(gpu, shader, {
           set: {
             params: {
@@ -138,6 +173,7 @@ export const GpuVisual = () => {
               selected: selectedX,
               time: 0,
             },
+            runners: runnerBuffer,
           },
         });
         const time = clock(gpu);
@@ -200,8 +236,16 @@ export const GpuVisual = () => {
     <section className="flex flex-col gap-3">
       <div className="relative">
         <canvas
-          aria-label="Interactive git benchmark field"
-          className="border-border/60 h-48 w-full touch-none rounded-lg border border-dotted"
+          aria-hidden
+          className="absolute inset-0 h-full w-full"
+          height={240}
+          ref={canvasRef}
+          width={640}
+        />
+
+        <canvas
+          aria-label="Git benchmark performance"
+          className="relative h-48 w-full touch-none rounded-lg border border-dotted"
           height={240}
           onKeyDown={(event) => {
             if (event.key === "ArrowLeft") {
@@ -224,7 +268,6 @@ export const GpuVisual = () => {
           }}
           onPointerLeave={() => setHoveredPoint(null)}
           onPointerMove={updatePointer}
-          ref={canvasRef}
           tabIndex={0}
           width={640}
         />
@@ -244,7 +287,7 @@ export const GpuVisual = () => {
                     ? "border-foreground scale-150"
                     : "border-background/80"
                 )}
-                key={`${point.label}-${point.operationId}`}
+                key={`${point.label}-${point.operation}`}
                 style={{
                   backgroundColor: pointColor,
                   left: `${point.x * 100}%`,
@@ -257,12 +300,18 @@ export const GpuVisual = () => {
       </div>
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
-        <span className="text-muted-foreground">
-          Hover or use arrow keys to inspect · click to pin
+        <span className="sr-only">
+          Use the left and right arrow keys to inspect runners. Press Escape to
+          clear the selection.
         </span>
+
+        <span className="text-muted-foreground">
+          Runner score · lower is faster
+        </span>
+
         {activePoint === null ? (
           <span className="text-muted-foreground">
-            {visualPoints.length} benchmark measurements
+            Select a runner or operation
           </span>
         ) : (
           <span className="flex flex-wrap items-center gap-2">
@@ -272,11 +321,6 @@ export const GpuVisual = () => {
             />
             <span className="font-medium">{activePoint.label}</span>
             <span className="text-muted-foreground">
-              {activePoint.operationLabel} ·{" "}
-              {activePoint.medianMs === null
-                ? "no result"
-                : `${Math.round(activePoint.medianMs)} ms`}{" "}
-              ·{" "}
               {activePoint.ratio === null
                 ? "—"
                 : formatRatio(activePoint.ratio)}
